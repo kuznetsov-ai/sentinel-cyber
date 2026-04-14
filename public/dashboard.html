@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vigilant Lens | Fraud Monitor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-container": "#5c0008",
+                      "surface": "#111317",
+                      "on-surface": "#e2e2e8",
+                      "error": "#ffb4ab",
+                      "primary-fixed-dim": "#b0c6ff",
+                      "error-container": "#93000a",
+                      "background": "#111317",
+                      "on-secondary-fixed": "#00210c",
+                      "on-primary-fixed-variant": "#00429c",
+                      "primary": "#b0c6ff",
+                      "outline": "#8c90a1",
+                      "on-error-container": "#ffdad6",
+                      "primary-fixed": "#d9e2ff",
+                      "on-surface-variant": "#c2c6d8",
+                      "primary-container": "#568dff",
+                      "on-error": "#690005",
+                      "on-tertiary": "#68000b",
+                      "tertiary-container": "#ff5352",
+                      "tertiary-fixed": "#ffdad7",
+                      "inverse-surface": "#e2e2e8",
+                      "secondary-fixed": "#6bfe9c",
+                      "surface-container-high": "#282a2e",
+                      "surface-container-highest": "#333539",
+                      "on-tertiary-fixed": "#410004",
+                      "inverse-primary": "#0058cb",
+                      "surface-tint": "#b0c6ff",
+                      "tertiary-fixed-dim": "#ffb3ae",
+                      "secondary": "#4ae183",
+                      "on-secondary-fixed-variant": "#005228",
+                      "on-secondary-container": "#00431f",
+                      "on-primary-fixed": "#001945",
+                      "on-secondary": "#003919",
+                      "outline-variant": "#424655",
+                      "on-tertiary-fixed-variant": "#930014",
+                      "surface-variant": "#333539",
+                      "surface-bright": "#37393e",
+                      "surface-container": "#1e2024",
+                      "surface-dim": "#111317",
+                      "surface-container-lowest": "#0c0e12",
+                      "surface-container-low": "#1a1c20",
+                      "on-background": "#e2e2e8",
+                      "on-primary": "#002d6f",
+                      "inverse-on-surface": "#2f3035",
+                      "on-primary-container": "#002661",
+                      "tertiary": "#ffb3ae",
+                      "secondary-container": "#06bb63",
+                      "secondary-fixed-dim": "#4ae183"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "fontFamily": {
+                      "headline": ["Manrope"],
+                      "body": ["Inter"],
+                      "label": ["Inter"]
+              }
+            },
+          },
+        }
+      </script>
+<style>
+        .glass-card {
+            background: rgba(51, 53, 57, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(66, 70, 85, 0.2);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ghost-border {
+            border: 1px solid rgba(66, 70, 85, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body selection:bg-primary selection:text-on-primary">
+<!-- SideNavBar Anchor -->
+<nav class="h-screen w-64 fixed left-0 top-0 bg-[#111317] flex flex-col py-8 border-r border-[#424655]/20 shadow-[0_0_40px_rgba(176,198,255,0.05)] z-[60]">
+<div class="px-6 mb-12">
+<h1 class="text-xl font-bold tracking-tight text-slate-100 font-headline">Vigilant Lens</h1>
+<p class="text-[10px] uppercase tracking-widest text-primary font-bold opacity-80 mt-1">Fraud Command</p>
+</div>
+<div class="flex-1 px-4 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 font-manrope text-sm font-medium text-white font-bold relative after:content-[''] after:absolute after:left-0 after:w-1 after:h-4 after:bg-[#b0c6ff] after:shadow-[0_0_8px_#b0c6ff] transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="dashboard">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 font-manrope text-sm font-medium text-slate-400 opacity-70 hover:bg-[#1c1f26] hover:text-white transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="warning">warning</span>
+                Alerts
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 font-manrope text-sm font-medium text-slate-400 opacity-70 hover:bg-[#1c1f26] hover:text-white transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="assignment_late">assignment_late</span>
+                Cases
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 font-manrope text-sm font-medium text-slate-400 opacity-70 hover:bg-[#1c1f26] hover:text-white transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="rule_folder">rule_folder</span>
+                Rules Engine
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 font-manrope text-sm font-medium text-slate-400 opacity-70 hover:bg-[#1c1f26] hover:text-white transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="assessment">assessment</span>
+                Reports
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 font-manrope text-sm font-medium text-slate-400 opacity-70 hover:bg-[#1c1f26] hover:text-white transition-all duration-300 mt-auto" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="settings">settings</span>
+                Settings
+            </a>
+</div>
+<div class="px-6 mt-auto flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden">
+<img alt="System Administrator" data-alt="Close-up portrait of a digital avatar represent system administrator profile icon in minimalist line art" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSh_N4WSZAQhhOOipbKrYdFYGrRirT8jIMZBttthYGSWvcnnvOt6TsU3KQLJGfLhC6fKLtbM0GTiEACZtJiNIpBbjY9_GQEIzjK9BtzV6Qb4_qw6WOJwOOXZL2Z546gWmHbhsBgxdPbWccITDIKAg1qXS92-8Vwo2nMzArlvsjYKH4SJvsXbfZDA_mJjkRslzMS6KhOH4x6tozdS7TpGW9uJjnFb_gsP4n7B04fkV_JXDq5nHfNzDcvFfczDEeTXmZc20AvmJr9G73"/>
+</div>
+<div>
+<p class="text-xs font-bold text-slate-100">Admin User</p>
+<p class="text-[10px] text-slate-400">Security Clearance IV</p>
+</div>
+</div>
+</nav>
+<!-- TopNavBar Anchor -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] z-50 flex items-center justify-between px-8 h-16 bg-[#111317]/40 backdrop-blur-xl border-b border-[#424655]/15 font-inter text-sm">
+<div class="flex items-center bg-surface-container-low px-4 py-2 rounded-lg ghost-border w-96 group focus-within:ring-1 focus-within:ring-[#b0c6ff]/40 transition-all">
+<span class="material-symbols-outlined text-on-surface-variant mr-2 text-lg" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm text-on-surface w-full" placeholder="Search suspicious patterns, transaction IDs..." type="text"/>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-slate-400">
+<button class="hover:bg-white/5 p-2 rounded-full transition-colors relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-tertiary-container rounded-full border-2 border-surface"></span>
+</button>
+<button class="hover:bg-white/5 p-2 rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-24 p-8 min-h-screen bg-surface-container-low">
+<!-- Top Row: KPI Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<!-- Total Alerts -->
+<div class="glass-card p-6 rounded-xl relative overflow-hidden group">
+<div class="absolute left-0 top-0 bottom-0 w-[2px] bg-primary"></div>
+<div class="flex justify-between items-start mb-4">
+<span class="text-xs font-bold tracking-widest text-on-surface-variant uppercase">Total Alerts Today</span>
+<span class="material-symbols-outlined text-primary" data-icon="bolt">bolt</span>
+</div>
+<div class="flex items-baseline gap-2">
+<h2 class="text-3xl font-headline font-bold text-white">1,284</h2>
+<span class="text-[10px] text-secondary font-bold flex items-center">
+<span class="material-symbols-outlined text-xs" data-icon="arrow_upward">arrow_upward</span> 12%
+                    </span>
+</div>
+<p class="text-[10px] text-on-surface-variant mt-1">Updated 2m ago</p>
+</div>
+<!-- Active Cases -->
+<div class="glass-card p-6 rounded-xl relative overflow-hidden group">
+<div class="absolute left-0 top-0 bottom-0 w-[2px] bg-tertiary"></div>
+<div class="flex justify-between items-start mb-4">
+<span class="text-xs font-bold tracking-widest text-on-surface-variant uppercase">Active Cases</span>
+<span class="material-symbols-outlined text-tertiary" data-icon="priority_high">priority_high</span>
+</div>
+<div class="flex items-baseline gap-2">
+<h2 class="text-3xl font-headline font-bold text-white">42</h2>
+<span class="text-[10px] text-tertiary font-bold flex items-center">
+<span class="material-symbols-outlined text-xs" data-icon="arrow_upward">arrow_upward</span> 4
+                    </span>
+</div>
+<p class="text-[10px] text-on-surface-variant mt-1">8 pending review</p>
+</div>
+<!-- Blocked Accounts -->
+<div class="glass-card p-6 rounded-xl relative overflow-hidden group">
+<div class="absolute left-0 top-0 bottom-0 w-[2px] bg-secondary"></div>
+<div class="flex justify-between items-start mb-4">
+<span class="text-xs font-bold tracking-widest text-on-surface-variant uppercase">Blocked Accounts</span>
+<span class="material-symbols-outlined text-secondary" data-icon="block">block</span>
+</div>
+<div class="flex items-baseline gap-2">
+<h2 class="text-3xl font-headline font-bold text-white">15</h2>
+<span class="text-[10px] text-on-surface-variant font-medium">Auto-action enabled</span>
+</div>
+<p class="text-[10px] text-on-surface-variant mt-1">Last block: 14:22</p>
+</div>
+<!-- Risk Score -->
+<div class="glass-card p-6 rounded-xl relative overflow-hidden group">
+<div class="absolute left-0 top-0 bottom-0 w-[2px] bg-primary"></div>
+<div class="flex justify-between items-start mb-4">
+<span class="text-xs font-bold tracking-widest text-on-surface-variant uppercase">Risk Score Avg</span>
+<span class="material-symbols-outlined text-primary" data-icon="analytics">analytics</span>
+</div>
+<div class="flex items-baseline gap-2">
+<h2 class="text-3xl font-headline font-bold text-white">24<span class="text-lg text-on-surface-variant font-normal">/100</span></h2>
+<span class="text-[10px] text-secondary font-bold flex items-center">
+<span class="material-symbols-outlined text-xs" data-icon="arrow_downward">arrow_downward</span> 2.1
+                    </span>
+</div>
+<p class="text-[10px] text-on-surface-variant mt-1">Safe threshold: &lt; 30</p>
+</div>
+</div>
+<!-- Middle Section: Timeline Visualization -->
+<div class="grid grid-cols-1 mb-8">
+<div class="glass-card p-8 rounded-xl relative">
+<div class="flex justify-between items-center mb-10">
+<div>
+<h3 class="text-xl font-headline font-bold text-white">Suspicious Activity Timeline</h3>
+<p class="text-sm text-on-surface-variant">Real-time fraud attempt detection across all nodes (Last 24h)</p>
+</div>
+<div class="flex gap-2">
+<button class="bg-surface-container-high px-4 py-1.5 rounded-lg text-xs font-medium ghost-border hover:bg-surface-variant transition-colors">Hourly</button>
+<button class="bg-primary text-on-primary px-4 py-1.5 rounded-lg text-xs font-bold">Real-time</button>
+</div>
+</div>
+<!-- Custom Line Chart Representation -->
+<div class="relative h-64 w-full flex items-end justify-between px-4">
+<!-- Background Grid Lines -->
+<div class="absolute inset-x-0 bottom-0 flex flex-col justify-between h-full pointer-events-none opacity-10">
+<div class="border-b border-on-surface w-full h-0"></div>
+<div class="border-b border-on-surface w-full h-0"></div>
+<div class="border-b border-on-surface w-full h-0"></div>
+<div class="border-b border-on-surface w-full h-0"></div>
+</div>
+<!-- SVG Chart -->
+<svg class="absolute inset-0 w-full h-full" preserveaspectratio="none" viewbox="0 0 1000 200">
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#b0c6ff" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#b0c6ff" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<!-- Area Fill -->
+<path d="M0,180 Q100,160 200,175 T400,170 T600,60 T700,165 T800,40 T900,170 T1000,175 V200 H0 Z" fill="url(#chartGradient)"></path>
+<!-- Line -->
+<path d="M0,180 Q100,160 200,175 T400,170 T600,60 T700,165 T800,40 T900,170 T1000,175" fill="none" stroke="#b0c6ff" stroke-width="2"></path>
+<!-- Anomaly Points -->
+<circle cx="600" cy="60" fill="#ff5352" r="4"></circle>
+<circle cx="600" cy="60" fill="#ff5352" fill-opacity="0.2" r="10"></circle>
+<circle cx="800" cy="40" fill="#ff5352" r="4"></circle>
+<circle cx="800" cy="40" fill="#ff5352" fill-opacity="0.2" r="10"></circle>
+</svg>
+<!-- Anomaly Labels -->
+<div class="absolute top-12 left-[58%] glass-card px-3 py-1.5 rounded-lg border-tertiary/30">
+<p class="text-[10px] font-bold text-tertiary">SPIKE: Velocity Attack</p>
+<p class="text-[8px] text-white/60">04:12 AM • 45 hits/sec</p>
+</div>
+<div class="absolute top-4 left-[78%] glass-card px-3 py-1.5 rounded-lg border-tertiary/30">
+<p class="text-[10px] font-bold text-tertiary">CRITICAL: IP Tunneling</p>
+<p class="text-[8px] text-white/60">08:45 AM • Multiple nodes</p>
+</div>
+<!-- Time Axis -->
+<div class="absolute -bottom-8 w-full flex justify-between text-[10px] text-on-surface-variant font-medium px-2">
+<span>00:00</span><span>04:00</span><span>08:00</span><span>12:00</span><span>16:00</span><span>20:00</span><span>23:59</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Section: Recent Fraud Cases Table -->
+<div class="glass-card rounded-xl overflow-hidden mb-8">
+<div class="p-6 border-b border-outline-variant/10 flex justify-between items-center">
+<h3 class="text-lg font-headline font-bold text-white">Recent Fraud Cases</h3>
+<button class="text-xs font-bold text-primary flex items-center gap-1 hover:underline">
+                    View Full Audit Log <span class="material-symbols-outlined text-sm" data-icon="open_in_new">open_in_new</span>
+</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high/50 text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">
+<th class="px-6 py-4">UUID</th>
+<th class="px-6 py-4">Account</th>
+<th class="px-6 py-4">Risk Level</th>
+<th class="px-6 py-4">Detection Method</th>
+<th class="px-6 py-4">Status</th>
+<th class="px-6 py-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<!-- Row 1 -->
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-6 py-5 font-mono text-xs text-on-surface-variant">#FR-9021</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded-full bg-surface-container-highest overflow-hidden">
+<img alt="User Avatar" data-alt="Stylized geometric avatar profile picture for a banking user John Doe" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqqzAMEVUEAMEctdqP3PEam0rodtSh8eDDyomRxifdl_WyUM0R2N4o95KSVhufNG5zGJLCDG1MNCRymxWxFScx9UaaeKD2ioClp7k37CvgMsBXiaMWYBgW7vsO9uz7F7pFJ0OVMxMLHWvQUrKNZNO254xD46h3GIo5JMZDnK_-bZZJ7kIRU_BVQ9NW-XmNv-qZ7d6j5i6eW0wP8Fs0y-lio23vebzLyrUYVv4XmaABIEcaZa5jjYEByRjcpKPmyO4uRCWZhOWtQo5-"/>
+</div>
+<div>
+<p class="text-sm font-semibold text-white">Johnathan Doe</p>
+<p class="text-[10px] text-on-surface-variant">j.doe@example.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="px-2 py-1 rounded bg-tertiary-container/20 text-tertiary text-[10px] font-bold uppercase tracking-tight">Critical</span>
+</td>
+<td class="px-6 py-5 text-sm text-on-surface-variant">IP Geofencing</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+<span class="text-xs text-white">Under Review</span>
+</div>
+</td>
+<td class="px-6 py-5 text-right">
+<div class="flex justify-end gap-2">
+<button class="p-1.5 rounded hover:bg-primary/20 text-primary transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 rounded hover:bg-on-surface-variant/20 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="close">close</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-6 py-5 font-mono text-xs text-on-surface-variant">#FR-8842</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded-full bg-surface-container-highest overflow-hidden">
+<img alt="User Avatar" data-alt="Minimalist abstract avatar for a user Sarah White using cool blue color palette" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqPa-sd58yRITrJjBjNy67hxGbv8gQRPj9gnzdG2FfX61a5Ey_bRY6RSyQxGrGSMrth55g-Irb2oS6x9Jixwz3xlKLQlXivm183tO87H_ReWwo3kbllgc7xcmHDcDXmaXX1Vyq8uER-8Z7WMw7QMR3d9rwKQUMd6yJRJxmqYAyDeGrEO8pWHI-CVefKj-iL7ezfj_QRisqb7IsY9DEVjaXicuwEJkZfOr4mY0-6vDEKJHoOgT_M1xGPUXRqcgjBuQOSWrAw90RRYXh"/>
+</div>
+<div>
+<p class="text-sm font-semibold text-white">Sarah White</p>
+<p class="text-[10px] text-on-surface-variant">s.white@enterprise.co</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="px-2 py-1 rounded bg-primary/20 text-primary text-[10px] font-bold uppercase tracking-tight">Medium</span>
+</td>
+<td class="px-6 py-5 text-sm text-on-surface-variant">Velocity Attack</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+<span class="text-xs text-on-surface-variant">Pending</span>
+</div>
+</td>
+<td class="px-6 py-5 text-right">
+<div class="flex justify-end gap-2">
+<button class="p-1.5 rounded hover:bg-primary/20 text-primary transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 rounded hover:bg-on-surface-variant/20 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="close">close</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-6 py-5 font-mono text-xs text-on-surface-variant">#FR-8730</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded-full bg-surface-container-highest overflow-hidden">
+<img alt="User Avatar" data-alt="Portrait silhouette avatar for Mike Ross with technical grid background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5oBluHTlp3Yj-Jd13IV2M9V8MREODAKKQNBpBSTB6Yf3lDqhyoBl4QfKdjwNDukO6V_rk43LaefiCugExC8COTWPuMuQ0ksd2gXcD4V5xqg67Ujbiu051z4w91n0l0OH_lwFDPRyg0HIXNkncpOnSLQlIqof0ENvZG4nB7K00xyhfZqdYcKjfPa7V4SqDeOEzlDquimaDYQ1-1kjdLd0W56ogp6HzQr5xRPGH9mFJ0vjXi_pHH0ga9fKez5GOtFN17RLoUmrvABxB"/>
+</div>
+<div>
+<p class="text-sm font-semibold text-white">Mike Ross</p>
+<p class="text-[10px] text-on-surface-variant">m.ross@legal.firm</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="px-2 py-1 rounded bg-secondary/20 text-secondary text-[10px] font-bold uppercase tracking-tight">Low</span>
+</td>
+<td class="px-6 py-5 text-sm text-on-surface-variant">Login Anomaly</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="text-xs text-secondary">Resolved</span>
+</div>
+</td>
+<td class="px-6 py-5 text-right">
+<div class="flex justify-end gap-2">
+<button class="p-1.5 rounded hover:bg-primary/20 text-primary transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 rounded hover:bg-on-surface-variant/20 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="close">close</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+<!-- Contextual FAB -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined" data-icon="add" style="font-variation-settings: 'FILL' 1;">add</span>
+</button>
+</body></html>

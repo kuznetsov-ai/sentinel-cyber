@@ -1,0 +1,116 @@
+<%
+// Group rules by category
+const grouped = {};
+for (const rule of rules) {
+  const cat = rule.category || 'Uncategorized';
+  if (!grouped[cat]) grouped[cat] = [];
+  grouped[cat].push(rule);
+}
+const categories = Object.keys(grouped).sort();
+%>
+<div class="sc-page-header">
+  <div>
+    <h2>Rules Engine</h2>
+    <p>Detection rules management &mdash; <%= stats.total %> rules, <%= stats.active %> active</p>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button class="sc-btn sc-btn-ghost"><span class="material-symbols-outlined">upload</span>Import</button>
+    <button class="sc-btn sc-btn-primary"><span class="material-symbols-outlined">add</span>New Rule</button>
+  </div>
+</div>
+
+<!-- Stats row -->
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;">
+  <div class="sc-card sc-kpi">
+    <div class="kpi-label">Total Rules</div>
+    <div class="kpi-val"><%= stats.total %></div>
+    <div class="kpi-trend neutral">Configured</div>
+  </div>
+  <div class="sc-card sc-kpi">
+    <div class="kpi-label">Active</div>
+    <div class="kpi-val" style="color:var(--success);"><%= stats.active %></div>
+    <div class="kpi-trend up">Running</div>
+  </div>
+  <div class="sc-card sc-kpi">
+    <div class="kpi-label">Disabled</div>
+    <div class="kpi-val" style="color:var(--text-muted);"><%= stats.disabled %></div>
+    <div class="kpi-trend neutral">Paused</div>
+  </div>
+  <div class="sc-card sc-kpi">
+    <div class="kpi-label">Triggers Today</div>
+    <div class="kpi-val" style="color:var(--primary);"><%= stats.triggered_today.toLocaleString() %></div>
+    <div class="kpi-trend down">+18% vs avg</div>
+  </div>
+</div>
+
+<!-- Rules grouped by category -->
+<% for (const cat of categories) { %>
+<div class="sc-section-title"><%= cat %></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;margin-bottom:8px;">
+  <% for (const rule of grouped[cat]) { %>
+  <div class="sc-card" style="display:flex;flex-direction:column;gap:10px;">
+
+    <!-- Header row -->
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= rule.name %></div>
+        <div style="margin-top:4px;display:flex;gap:5px;flex-wrap:wrap;">
+          <% const typeClass = {
+            'Velocity':  'badge-velocity',
+            'ML Model':  'badge-ml-model',
+            'Pattern':   'badge-pattern',
+            'Threshold': 'badge-threshold'
+          }[rule.type] || 'badge-medium'; %>
+          <span class="sc-badge <%= typeClass %>"><%= rule.type %></span>
+          <% if (!rule.active) { %>
+          <span class="sc-badge" style="background:rgba(66,70,85,0.2);color:var(--text-muted);border:1px solid var(--border);font-size:10px;">DISABLED</span>
+          <% } %>
+        </div>
+      </div>
+      <div class="sc-toggle" data-id="<%= rule.id %>" data-active="<%= rule.active ? 'true' : 'false' %>"></div>
+    </div>
+
+    <!-- Priority bar -->
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px;">
+        <span>Priority</span>
+        <span><%= rule.priority %>/10</span>
+      </div>
+      <div style="height:4px;background:rgba(66,70,85,0.35);border-radius:2px;overflow:hidden;">
+        <div style="width:<%= (rule.priority / 10) * 100 %>%;height:100%;border-radius:2px;background:<%= rule.priority >= 8 ? 'var(--danger)' : rule.priority >= 5 ? 'var(--warning)' : 'var(--success)' %>;"></div>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-top:4px;border-top:1px solid rgba(66,70,85,0.15);">
+      <div>
+        <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;">Triggers</div>
+        <div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:16px;margin-top:1px;color:var(--primary);"><%= rule.trigger_count.toLocaleString() %></div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;">Modified</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:1px;"><%= rule.last_modified %></div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex;justify-content:flex-end;gap:2px;padding-top:2px;">
+      <button class="icon-btn" title="Edit rule" data-action="edit-rule" data-id="<%= rule.id %>">
+        <span class="material-symbols-outlined">edit</span>
+      </button>
+      <button class="icon-btn" title="Duplicate rule" data-action="copy-rule" data-id="<%= rule.id %>">
+        <span class="material-symbols-outlined">content_copy</span>
+      </button>
+      <button class="icon-btn" title="Delete rule" data-action="delete-rule" data-id="<%= rule.id %>" style="color:rgba(255,83,82,0.55);">
+        <span class="material-symbols-outlined">delete</span>
+      </button>
+    </div>
+
+  </div>
+  <% } %>
+</div>
+<% } %>
+
+<% if (rules.length === 0) { %>
+<div class="sc-card sc-empty">No rules configured. Click <strong>New Rule</strong> to get started.</div>
+<% } %>

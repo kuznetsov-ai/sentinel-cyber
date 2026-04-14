@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentinel Cyber — <%= title %></title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:          #0c0e12;
+    --surface:     #111317;
+    --surface-1:   #1a1c20;
+    --surface-2:   #1e2024;
+    --surface-3:   #282a2e;
+    --border:      rgba(66,70,85,0.25);
+    --primary:     #b0c6ff;
+    --primary-dim: #0070ff;
+    --success:     #4ae183;
+    --warning:     #f59e0b;
+    --danger:      #ff5352;
+    --text:        #e2e2e8;
+    --text-muted:  #8c90a1;
+    --sidebar-w:   256px;
+  }
+
+  html, body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: var(--sidebar-w); background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    padding: 28px 0; z-index: 60;
+    box-shadow: 4px 0 40px rgba(176,198,255,0.03);
+  }
+  .sc-logo { padding: 0 24px 32px; }
+  .sc-logo h1 { font-family: 'Manrope',sans-serif; font-size: 17px; font-weight: 800; color: #e2e2e8; letter-spacing: -0.3px; }
+  .sc-logo p  { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--primary); opacity: 0.75; margin-top: 3px; }
+
+  .sc-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 2px; }
+  .sc-nav a {
+    display: flex; align-items: center; gap: 11px;
+    padding: 10px 12px; border-radius: 8px;
+    font-size: 13.5px; font-weight: 500; color: var(--text-muted);
+    text-decoration: none; transition: all 0.15s;
+    position: relative;
+  }
+  .sc-nav a:hover { background: rgba(176,198,255,0.05); color: #c2c6d8; }
+  .sc-nav a.active {
+    color: #e2e2e8; font-weight: 600;
+    background: rgba(176,198,255,0.07);
+  }
+  .sc-nav a.active::before {
+    content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+    width: 3px; height: 18px; background: var(--primary);
+    border-radius: 0 3px 3px 0;
+    box-shadow: 0 0 8px var(--primary);
+  }
+  .sc-nav .material-symbols-outlined { font-size: 19px; }
+  .sc-nav .nav-sep { height: 1px; background: var(--border); margin: 8px 4px; }
+
+  .sc-user { padding: 16px 20px 0; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; margin-top: auto; }
+  .sc-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--surface-3); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; color: var(--primary); flex-shrink: 0; }
+  .sc-user p { font-size: 12px; font-weight: 600; color: #e2e2e8; }
+  .sc-user span { font-size: 10px; color: var(--text-muted); }
+
+  /* ── TOPBAR ── */
+  #topbar {
+    position: fixed; top: 0; right: 0;
+    left: var(--sidebar-w); height: 56px; z-index: 50;
+    background: rgba(11,13,17,0.85); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px;
+  }
+  .sc-search {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 8px; padding: 7px 14px; width: 320px;
+    transition: border-color 0.15s;
+  }
+  .sc-search:focus-within { border-color: rgba(176,198,255,0.3); }
+  .sc-search input { background: none; border: none; outline: none; font-family: inherit; font-size: 13px; color: var(--text); width: 100%; }
+  .sc-search input::placeholder { color: var(--text-muted); }
+  .sc-search .material-symbols-outlined { font-size: 17px; color: var(--text-muted); flex-shrink: 0; }
+
+  .sc-topbar-right { display: flex; align-items: center; gap: 6px; }
+  .sc-icon-btn {
+    background: none; border: none; cursor: pointer; color: var(--text-muted);
+    padding: 7px; border-radius: 7px; transition: all 0.15s; position: relative;
+    display: flex; align-items: center;
+  }
+  .sc-icon-btn:hover { background: rgba(176,198,255,0.07); color: var(--text); }
+  .sc-icon-btn .material-symbols-outlined { font-size: 20px; }
+  .sc-icon-btn .sc-dot { position: absolute; top: 5px; right: 5px; width: 7px; height: 7px; background: var(--danger); border-radius: 50%; box-shadow: 0 0 6px var(--danger); }
+
+  /* ── MAIN CANVAS ── */
+  #main { margin-left: var(--sidebar-w); padding-top: 56px; min-height: 100vh; }
+  .sc-page { padding: 28px 32px; max-width: 1400px; }
+
+  /* ── PAGE HEADER ── */
+  .sc-page-header { margin-bottom: 24px; display: flex; align-items: flex-end; justify-content: space-between; }
+  .sc-page-header h2 { font-family: 'Manrope',sans-serif; font-size: 26px; font-weight: 800; color: #e2e2e8; letter-spacing: -0.5px; }
+  .sc-page-header p  { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+  /* ── CARDS ── */
+  .sc-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+  }
+  .sc-card.glass {
+    background: rgba(30,32,36,0.6);
+    backdrop-filter: blur(12px);
+  }
+  .sc-card h3 { font-family: 'Manrope',sans-serif; font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 4px; }
+  .sc-card .sc-card-sub { font-size: 11px; color: var(--text-muted); }
+
+  /* ── KPI GRID ── */
+  .sc-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .sc-kpi { position: relative; overflow: hidden; }
+  .sc-kpi::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--primary); border-radius: 12px 0 0 12px; }
+  .sc-kpi .kpi-val { font-family: 'Manrope',sans-serif; font-size: 28px; font-weight: 800; color: var(--text); margin: 12px 0 4px; }
+  .sc-kpi .kpi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+  .sc-kpi .kpi-trend { font-size: 11px; font-weight: 600; margin-top: 6px; }
+  .kpi-trend.up   { color: var(--success); }
+  .kpi-trend.down { color: var(--danger); }
+  .kpi-trend.neutral { color: var(--text-muted); }
+
+  /* ── BADGES ── */
+  .sc-badge { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .badge-critical { background: rgba(255,83,82,0.12); color: var(--danger);  border: 1px solid rgba(255,83,82,0.2); }
+  .badge-high     { background: rgba(245,158,11,0.12); color: var(--warning); border: 1px solid rgba(245,158,11,0.2); }
+  .badge-medium   { background: rgba(176,198,255,0.12); color: var(--primary); border: 1px solid rgba(176,198,255,0.2); }
+  .badge-low      { background: rgba(74,225,131,0.12); color: var(--success);  border: 1px solid rgba(74,225,131,0.2); }
+  .badge-new        { background: rgba(176,198,255,0.1);  color: var(--primary); border: 1px solid rgba(176,198,255,0.15); }
+  .badge-acknowledged { background: rgba(245,158,11,0.1); color: var(--warning); border: 1px solid rgba(245,158,11,0.15); }
+  .badge-resolved   { background: rgba(74,225,131,0.1);  color: var(--success);  border: 1px solid rgba(74,225,131,0.15); }
+  .badge-open       { background: rgba(255,83,82,0.1);   color: var(--danger);   border: 1px solid rgba(255,83,82,0.15); }
+  .badge-under-review { background: rgba(176,198,255,0.1); color: var(--primary); border: 1px solid rgba(176,198,255,0.15); }
+  .badge-escalated  { background: rgba(245,158,11,0.1);  color: var(--warning); border: 1px solid rgba(245,158,11,0.15); }
+  .badge-closed     { background: rgba(74,225,131,0.1);  color: var(--success);  border: 1px solid rgba(74,225,131,0.15); }
+  .badge-velocity   { background: rgba(176,198,255,0.08); color: var(--primary); border: 1px solid rgba(176,198,255,0.15); }
+  .badge-ml-model   { background: rgba(74,225,131,0.08);  color: var(--success);  border: 1px solid rgba(74,225,131,0.15); }
+  .badge-pattern    { background: rgba(245,158,11,0.08);  color: var(--warning); border: 1px solid rgba(245,158,11,0.15); }
+  .badge-threshold  { background: rgba(255,83,82,0.08);   color: var(--danger);   border: 1px solid rgba(255,83,82,0.15); }
+
+  /* ── TABLE ── */
+  .sc-table-wrap { overflow-x: auto; }
+  .sc-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .sc-table thead tr { border-bottom: 1px solid var(--border); }
+  .sc-table th { padding: 10px 14px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); white-space: nowrap; }
+  .sc-table td { padding: 12px 14px; border-bottom: 1px solid rgba(66,70,85,0.12); vertical-align: middle; }
+  .sc-table tbody tr { transition: background 0.1s; }
+  .sc-table tbody tr:hover { background: rgba(176,198,255,0.03); }
+  .sc-table tbody tr:last-child td { border-bottom: none; }
+  .sc-table .td-mono { font-family: monospace; font-size: 12px; color: var(--primary); }
+  .sc-table .td-muted { color: var(--text-muted); font-size: 12px; }
+
+  /* ── FILTER BAR ── */
+  .sc-filters { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .sc-select {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 7px; padding: 7px 32px 7px 11px; font-family: inherit;
+    font-size: 12.5px; color: var(--text); cursor: pointer;
+    appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238c90a1'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+  }
+  .sc-select:focus { outline: none; border-color: rgba(176,198,255,0.3); }
+
+  /* ── BUTTONS ── */
+  .sc-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 7px; border: none;
+    font-family: inherit; font-size: 12.5px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .sc-btn .material-symbols-outlined { font-size: 16px; }
+  .sc-btn-primary { background: rgba(0,112,255,0.15); color: var(--primary); border: 1px solid rgba(176,198,255,0.2); }
+  .sc-btn-primary:hover { background: rgba(0,112,255,0.25); }
+  .sc-btn-ghost { background: var(--surface-1); color: var(--text); border: 1px solid var(--border); }
+  .sc-btn-ghost:hover { background: var(--surface-2); }
+  .sc-btn-danger { background: rgba(255,83,82,0.1); color: var(--danger); border: 1px solid rgba(255,83,82,0.2); }
+  .icon-btn { background: none; border: none; cursor: pointer; padding: 5px; border-radius: 5px; color: var(--text-muted); transition: all 0.1s; display: inline-flex; }
+  .icon-btn:hover { background: rgba(176,198,255,0.08); color: var(--text); }
+  .icon-btn .material-symbols-outlined { font-size: 17px; }
+
+  /* ── PAGINATION ── */
+  .sc-pager { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; font-size: 12px; color: var(--text-muted); }
+  .sc-pager-btns { display: flex; gap: 4px; }
+  .sc-pager-btns button { padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface-1); color: var(--text); font-family: inherit; font-size: 12px; cursor: pointer; transition: all 0.1s; }
+  .sc-pager-btns button:hover { background: var(--surface-2); }
+  .sc-pager-btns button.active { background: rgba(0,112,255,0.15); color: var(--primary); border-color: rgba(176,198,255,0.25); }
+  .sc-pager-btns button:disabled { opacity: 0.4; cursor: default; }
+
+  /* ── TOGGLE ── */
+  .sc-toggle { display: inline-flex; width: 40px; height: 22px; border-radius: 999px; cursor: pointer; position: relative; transition: background 0.2s; flex-shrink: 0; }
+  .sc-toggle[data-active="true"]  { background: var(--success); }
+  .sc-toggle[data-active="false"] { background: #374151; }
+  .sc-toggle::after { content: ''; position: absolute; top: 3px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: left 0.18s; box-shadow: 0 1px 3px rgba(0,0,0,0.25); }
+  .sc-toggle[data-active="true"]::after  { left: calc(100% - 19px); }
+  .sc-toggle[data-active="false"]::after { left: 3px; }
+
+  /* ── MISC ── */
+  .sc-section-title { font-family: 'Manrope',sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 12px; margin-top: 24px; padding-left: 4px; }
+  .sc-empty { text-align: center; padding: 48px; color: var(--text-muted); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sc-logo">
+    <h1>Vigilant Lens</h1>
+    <p>Fraud Command</p>
+  </div>
+  <div class="sc-nav">
+    <% const navItems = [
+      { href: '/',         icon: 'dashboard',       label: 'Dashboard'    },
+      { href: '/alerts',   icon: 'notifications',   label: 'Alerts'       },
+      { href: '/cases',    icon: 'folder_open',      label: 'Cases'        },
+      { href: '/rules',    icon: 'rule',             label: 'Rules Engine' },
+      { href: '/reports',  icon: 'bar_chart',        label: 'Reports'      },
+    ]; %>
+    <% for (const item of navItems) { %>
+    <a href="<%= item.href %>" class="<%= page === item.href ? 'active' : '' %>">
+      <span class="material-symbols-outlined"><%= item.icon %></span>
+      <%= item.label %>
+    </a>
+    <% } %>
+    <div class="nav-sep"></div>
+    <a href="/settings" class="<%= page === '/settings' ? 'active' : '' %>">
+      <span class="material-symbols-outlined">settings</span>
+      Settings
+    </a>
+  </div>
+  <div class="sc-user">
+    <div class="avatar">AP</div>
+    <div>
+      <p>Alex P.</p>
+      <span>Admin</span>
+    </div>
+  </div>
+</nav>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <div class="sc-search">
+    <span class="material-symbols-outlined">search</span>
+    <input type="text" placeholder="Search accounts, alerts, cases…">
+  </div>
+  <div class="sc-topbar-right">
+    <button class="sc-icon-btn" id="notif-btn" title="Notifications">
+      <span class="material-symbols-outlined">notifications</span>
+      <span class="sc-dot"></span>
+    </button>
+    <button class="sc-icon-btn" id="profile-btn" title="Profile">
+      <span class="material-symbols-outlined">account_circle</span>
+    </button>
+  </div>
+</header>
+
+<!-- MAIN -->
+<div id="main">
+  <div class="sc-page">
+    <%- body %>
+  </div>
+</div>
+
+<script src="/interactivity.js"></script>
+</body>
+</html>

@@ -1,0 +1,326 @@
+<div class="sc-page-header">
+  <div>
+    <h2>Settings</h2>
+    <p>System configuration and preferences</p>
+  </div>
+  <button class="sc-btn sc-btn-primary" onclick="saveSettings()">
+    <span class="material-symbols-outlined">save</span>Save Changes
+  </button>
+</div>
+
+<!-- ── TAB BAR ── -->
+<div id="settings-tabs" style="display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:24px;">
+  <% [
+    { id:'general',      label:'General'      },
+    { id:'notifications',label:'Notifications'},
+    { id:'integrations', label:'Integrations' },
+    { id:'team',         label:'Team'         },
+    { id:'security',     label:'Security'     },
+  ].forEach(tab => { %>
+  <button
+    data-tab="<%= tab.id %>"
+    onclick="switchTab('<%= tab.id %>')"
+    style="background:none;border:none;border-bottom:2px solid transparent;padding:10px 18px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;color:var(--text-muted);transition:all .15s;margin-bottom:-1px;"
+    onmouseenter="if(!this.classList.contains('tab-active'))this.style.color='#c2c6d8'"
+    onmouseleave="if(!this.classList.contains('tab-active'))this.style.color='var(--text-muted)'"
+  ><%= tab.label %></button>
+  <% }) %>
+</div>
+
+<!-- ── GENERAL ── -->
+<div id="tab-general" class="settings-panel" style="max-width:720px;display:flex;flex-direction:column;gap:20px;">
+
+  <div class="sc-card">
+    <div class="sc-section-title" style="margin-top:0">System Settings</div>
+    <div style="display:flex;flex-direction:column;gap:16px;margin-top:12px">
+      <% [
+        { id:'dashboard_name', label:'Dashboard Name', sub:'Shown in the sidebar header', type:'text', val: settings.dashboard_name },
+      ].forEach(f => { %>
+      <div style="display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:center">
+        <div>
+          <div style="font-size:13px;font-weight:600"><%= f.label %></div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px"><%= f.sub %></div>
+        </div>
+        <input type="<%= f.type %>" id="<%= f.id %>" value="<%= f.val %>"
+          style="background:var(--surface-1);border:1px solid var(--border);border-radius:7px;padding:8px 12px;font-family:inherit;font-size:13px;color:var(--text);width:100%;outline:none"
+          onfocus="this.style.borderColor='rgba(176,198,255,0.3)'"
+          onblur="this.style.borderColor='var(--border)'">
+      </div>
+      <% }) %>
+      <div style="display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:center">
+        <div>
+          <div style="font-size:13px;font-weight:600">Timezone</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Used for all timestamps</div>
+        </div>
+        <select class="sc-select" style="width:100%;padding:8px 32px 8px 11px">
+          <% ['Europe/Nicosia (UTC+3)','UTC','Europe/London (UTC+1)','America/New_York (UTC-4)'].forEach(tz => { %>
+          <option <%= settings.timezone === tz ? 'selected' : '' %>><%= tz %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:center">
+        <div>
+          <div style="font-size:13px;font-weight:600">Data Retention (days)</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Alerts and cases kept for N days</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="number" value="<%= settings.retention_days %>" min="7" max="365"
+            style="background:var(--surface-1);border:1px solid var(--border);border-radius:7px;padding:8px 12px;font-family:inherit;font-size:13px;color:var(--text);width:100px;outline:none"
+            onfocus="this.style.borderColor='rgba(176,198,255,0.3)'" onblur="this.style.borderColor='var(--border)'">
+          <span style="font-size:12px;color:var(--text-muted)">days (7–365)</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:center">
+        <div>
+          <div style="font-size:13px;font-weight:600">Auto-refresh Dashboard</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Reload data every 30 seconds</div>
+        </div>
+        <div class="sc-toggle" data-id="auto_refresh" data-active="true"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sc-card">
+    <div class="sc-section-title" style="margin-top:0">Alert Thresholds</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px">Minimum risk score to trigger each severity level.</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <% [
+        { label:'Critical', cls:'badge-critical', color:'var(--danger)',  val:80 },
+        { label:'High',     cls:'badge-high',     color:'var(--warning)', val:60 },
+        { label:'Medium',   cls:'badge-medium',   color:'var(--primary)', val:35 },
+        { label:'Low',      cls:'badge-low',      color:'var(--success)', val:10 },
+      ].forEach(t => { %>
+      <div style="display:grid;grid-template-columns:120px 1fr 48px;gap:14px;align-items:center">
+        <span class="sc-badge <%= t.cls %>"><%= t.label %></span>
+        <input type="range" min="0" max="100" value="<%= t.val %>"
+          style="width:100%;accent-color:<%= t.color %>"
+          oninput="this.nextElementSibling.textContent=this.value">
+        <span style="font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;color:<%= t.color %>;text-align:right"><%= t.val %></span>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── NOTIFICATIONS ── -->
+<div id="tab-notifications" class="settings-panel" style="max-width:720px;display:none;flex-direction:column;gap:20px">
+  <div class="sc-card">
+    <div class="sc-section-title" style="margin-top:0">Alert Routing</div>
+    <div style="display:flex;flex-direction:column">
+      <% [
+        { id:'notif_email',   label:'Email Alerts',     sub:'Send email for Critical/High alerts',       active:true  },
+        { id:'notif_slack',   label:'Slack Integration', sub:'Post to #fraud-alerts channel',             active:false },
+        { id:'notif_sms',     label:'SMS Escalation',    sub:'SMS for unacknowledged Critical alerts',    active:false },
+        { id:'notif_digest',  label:'Daily Digest',      sub:'Summary email every morning at 08:00',      active:true  },
+        { id:'notif_webhook', label:'Webhook Dispatch',  sub:'POST events to configured endpoint',        active:false },
+      ].forEach((n, i, arr) => { %>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;<%= i<arr.length-1?'border-bottom:1px solid rgba(66,70,85,0.15)':'' %>">
+        <div>
+          <div style="font-size:13px;font-weight:600"><%= n.label %></div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px"><%= n.sub %></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:11px;color:var(--text-muted)" id="<%= n.id %>-lbl"><%= n.active?'Enabled':'Disabled' %></span>
+          <div class="sc-toggle" data-id="<%= n.id %>" data-active="<%= n.active?'true':'false' %>"></div>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+  <div class="sc-card">
+    <div class="sc-section-title" style="margin-top:0">Webhook Endpoint</div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <input type="url" placeholder="https://hooks.example.com/fraud-alerts"
+        style="flex:1;background:var(--surface-1);border:1px solid var(--border);border-radius:7px;padding:8px 12px;font-family:monospace,sans-serif;font-size:12px;color:var(--text);outline:none"
+        onfocus="this.style.borderColor='rgba(176,198,255,0.3)'" onblur="this.style.borderColor='var(--border)'">
+      <button class="sc-btn sc-btn-ghost" onclick="showToastGlobal('Webhook test sent','info')">
+        <span class="material-symbols-outlined">send</span>Test
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── INTEGRATIONS ── -->
+<div id="tab-integrations" class="settings-panel" style="max-width:720px;display:none">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <% [
+      { icon:'hub',              color:'var(--primary)', name:'Slack',      desc:'Webhook alerts',           connected:true  },
+      { icon:'mark_email_read',  color:'var(--danger)',  name:'PagerDuty',  desc:'On-call escalation',       connected:false },
+      { icon:'storage',          color:'var(--success)', name:'ClickHouse', desc:'Primary data source',      connected:true  },
+      { icon:'api',              color:'var(--primary)', name:'REST API',   desc:'External access tokens',   connected:true  },
+      { icon:'notifications',    color:'var(--warning)', name:'PushOver',   desc:'Mobile push notifications',connected:false },
+      { icon:'security',         color:'var(--success)', name:'Vault',      desc:'Secret management',        connected:true  },
+    ].forEach(int => { %>
+    <div class="sc-card" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="background:rgba(176,198,255,0.07);border-radius:8px;padding:8px;display:flex">
+          <span class="material-symbols-outlined" style="color:<%= int.color %>;font-size:20px"><%= int.icon %></span>
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:13px"><%= int.name %></div>
+          <div style="font-size:11px;color:var(--text-muted)"><%= int.desc %></div>
+        </div>
+        <span class="sc-badge <%= int.connected ? 'badge-closed' : 'badge-open' %>"><%= int.connected ? 'Connected' : 'Disconnected' %></span>
+      </div>
+      <button class="sc-btn <%= int.connected ? 'sc-btn-primary' : 'sc-btn-ghost' %>"
+        onclick="showToastGlobal('<%= int.name %> <%= int.connected ? 'settings opened' : 'setup wizard opened' %>','info')">
+        <%= int.connected ? 'Configure' : 'Connect' %>
+      </button>
+    </div>
+    <% }) %>
+  </div>
+</div>
+
+<!-- ── TEAM ── -->
+<div id="tab-team" class="settings-panel" style="max-width:720px;display:none">
+  <div class="sc-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="sc-section-title" style="margin:0">Team Members</div>
+      <button class="sc-btn sc-btn-primary" onclick="showModalGlobal('Invite team member',inviteHTML)">
+        <span class="material-symbols-outlined">person_add</span>Invite Member
+      </button>
+    </div>
+    <table class="sc-table" style="width:100%">
+      <thead><tr>
+        <th>Member</th><th>Role</th><th>Status</th><th>Last Active</th><th style="text-align:right">Actions</th>
+      </tr></thead>
+      <tbody>
+        <% [
+          { name:'Elena K.',  email:'elena.k@sentinel.cyber',  role:'Admin',   online:true,  last:'Just now'   },
+          { name:'Mike T.',   email:'m.thompson@sentinel.cyber',role:'Analyst', online:true,  last:'3 min ago'  },
+          { name:'Sarah J.',  email:'sarah.j@sentinel.cyber',  role:'Analyst', online:false, last:'2 hrs ago'  },
+          { name:'Alex P.',   email:'alex.p@sentinel.cyber',   role:'Admin',   online:true,  last:'Just now', you:true },
+        ].forEach(u => { %>
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:30px;height:30px;border-radius:50%;background:var(--surface-3);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:var(--primary);flex-shrink:0">
+                <%= u.name.split(' ').map(w=>w[0]).join('') %>
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:600"><%= u.name %><%= u.you ? ' <span style="font-size:10px;color:var(--primary);font-weight:600">(you)</span>' : '' %></div>
+                <div style="font-size:11px;color:var(--text-muted)"><%= u.email %></div>
+              </div>
+            </div>
+          </td>
+          <td><span class="sc-badge <%= u.role==='Admin'?'badge-medium':'badge-low' %>"><%= u.role %></span></td>
+          <td>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="width:6px;height:6px;border-radius:50%;background:<%= u.online?'var(--success)':'var(--text-muted)' %>"></div>
+              <span style="font-size:12px;color:<%= u.online?'var(--success)':'var(--text-muted)' %>"><%= u.online?'Online':'Offline' %></span>
+            </div>
+          </td>
+          <td class="td-muted"><%= u.last %></td>
+          <td style="text-align:right">
+            <button class="icon-btn" onclick="showToastGlobal('Edit user <%= u.name %>','info')" title="Edit">
+              <span class="material-symbols-outlined">edit</span>
+            </button>
+            <% if (!u.you) { %>
+            <button class="icon-btn" onclick="showToastGlobal('Removed <%= u.name %>','warning')" title="Remove" style="color:var(--danger)">
+              <span class="material-symbols-outlined">person_remove</span>
+            </button>
+            <% } %>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── SECURITY ── -->
+<div id="tab-security" class="settings-panel" style="max-width:720px;display:none;flex-direction:column;gap:20px">
+  <div class="sc-card">
+    <div class="sc-section-title" style="margin-top:0">Authentication</div>
+    <div style="display:flex;flex-direction:column;gap:0">
+      <% [
+        { id:'sec_2fa',     label:'Require 2FA for all users', sub:'Enforce TOTP for every login',    active:true  },
+        { id:'sec_sso',     label:'SSO Integration',           sub:'Login via Okta / Azure AD',       active:false },
+        { id:'sec_ip',      label:'IP Allowlist',              sub:'Restrict access to known IPs',    active:true  },
+      ].forEach((s,i,arr) => { %>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;<%= i<arr.length-1?'border-bottom:1px solid rgba(66,70,85,0.15)':'' %>">
+        <div>
+          <div style="font-size:13px;font-weight:600"><%= s.label %></div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px"><%= s.sub %></div>
+        </div>
+        <div class="sc-toggle" data-id="<%= s.id %>" data-active="<%= s.active?'true':'false' %>"></div>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+
+  <div class="sc-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="sc-section-title" style="margin:0">Audit Log</div>
+      <button class="sc-btn sc-btn-ghost" onclick="showToastGlobal('Audit log exported','success')">
+        <span class="material-symbols-outlined">download</span>Export CSV
+      </button>
+    </div>
+    <table class="sc-table">
+      <thead><tr><th>User</th><th>Event</th><th>Time</th><th>IP</th><th>Result</th></tr></thead>
+      <tbody>
+        <% [
+          { user:'alex.p',  event:'Login',           time:'20:14', ip:'185.22.x.x', ok:true  },
+          { user:'elena.k', event:'Rule updated',    time:'19:52', ip:'82.117.x.x', ok:true  },
+          { user:'mike.t',  event:'Alert dismissed', time:'19:41', ip:'5.43.x.x',   ok:true  },
+          { user:'SYSTEM',  event:'Auto-block fired',time:'19:03', ip:'—',          ok:true  },
+          { user:'sarah.j', event:'Login',           time:'18:57', ip:'77.90.x.x',  ok:false },
+        ].forEach(e => { %>
+        <tr>
+          <td><span class="sc-badge badge-medium" style="font-size:10px"><%= e.user %></span></td>
+          <td style="font-size:13px"><%= e.event %></td>
+          <td class="td-muted"><%= e.time %></td>
+          <td class="td-muted"><%= e.ip %></td>
+          <td><span class="sc-badge <%= e.ok?'badge-closed':'badge-open' %>"><%= e.ok?'OK':'FAIL' %></span></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── TAB SWITCHING JS (self-contained, no dependency) ── -->
+<script>
+var inviteHTML = '<div style="display:flex;flex-direction:column;gap:12px">' +
+  '<div><label style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.08em">Email</label>' +
+  '<input type="email" placeholder="name@sentinel.cyber" style="width:100%;background:var(--surface-1);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--text);font-family:Inter,sans-serif;font-size:13px;box-sizing:border-box;outline:none"></div>' +
+  '<div><label style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.08em">Role</label>' +
+  '<select style="width:100%;background:var(--surface-1);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--text);font-family:Inter,sans-serif;font-size:13px"><option>Analyst</option><option>Admin</option><option>Viewer</option></select></div>' +
+  '<button onclick="showToastGlobal(\'Invitation sent!\',\'success\');document.getElementById(\'sc-modal-overlay\').remove()" ' +
+  'style="background:rgba(0,112,255,0.1);border:1px solid rgba(176,198,255,0.2);color:var(--primary);padding:8px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Send invitation</button></div>';
+
+function switchTab(id) {
+  // Hide all panels
+  document.querySelectorAll('.settings-panel').forEach(function(p) {
+    p.style.display = 'none';
+  });
+  // Show target
+  var panel = document.getElementById('tab-' + id);
+  if (panel) {
+    panel.style.display = (id === 'integrations' || id === 'team') ? 'block' : 'flex';
+    panel.style.flexDirection = 'column';
+    panel.style.gap = '20px';
+  }
+  // Update tab button styles
+  document.querySelectorAll('#settings-tabs button').forEach(function(btn) {
+    var active = btn.getAttribute('data-tab') === id;
+    btn.style.color     = active ? 'var(--primary)'                   : 'var(--text-muted)';
+    btn.style.borderBottomColor = active ? 'var(--primary)'          : 'transparent';
+    btn.style.fontWeight = active ? '600' : '500';
+    if (active) btn.classList.add('tab-active');
+    else        btn.classList.remove('tab-active');
+  });
+  // Re-init any new toggles in the panel
+  if (typeof initTogglesGlobal === 'function') initTogglesGlobal();
+}
+
+function saveSettings() {
+  if (typeof showToastGlobal === 'function') showToastGlobal('Settings saved', 'success');
+}
+
+// Activate General tab on load
+document.addEventListener('DOMContentLoaded', function() { switchTab('general'); });
+// Also run immediately in case DOMContentLoaded already fired
+switchTab('general');
+</script>

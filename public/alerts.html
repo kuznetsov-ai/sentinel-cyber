@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sentinel Cyber | Fraud Alerts</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#333539",
+                        "surface-container-high": "#282a2e",
+                        "on-secondary-fixed": "#00210c",
+                        "on-error-container": "#ffdad6",
+                        "surface-tint": "#b0c6ff",
+                        "primary-fixed": "#d9e2ff",
+                        "on-secondary": "#003919",
+                        "background": "#111317",
+                        "outline": "#8c90a1",
+                        "on-secondary-container": "#00431f",
+                        "on-primary-fixed": "#001945",
+                        "surface-container-lowest": "#0c0e12",
+                        "tertiary-fixed": "#ffdad7",
+                        "inverse-primary": "#0058cb",
+                        "on-primary-fixed-variant": "#00429c",
+                        "on-tertiary": "#68000b",
+                        "primary": "#b0c6ff",
+                        "primary-fixed-dim": "#b0c6ff",
+                        "surface-container-low": "#1a1c20",
+                        "on-surface": "#e2e2e8",
+                        "error": "#ffb4ab",
+                        "inverse-on-surface": "#2f3035",
+                        "on-surface-variant": "#c2c6d8",
+                        "surface-container": "#1e2024",
+                        "surface-dim": "#111317",
+                        "secondary-container": "#06bb63",
+                        "secondary": "#4ae183",
+                        "on-secondary-fixed-variant": "#005228",
+                        "error-container": "#93000a",
+                        "on-background": "#e2e2e8",
+                        "tertiary-container": "#ff5352",
+                        "on-tertiary-container": "#5c0008",
+                        "on-tertiary-fixed": "#410004",
+                        "on-tertiary-fixed-variant": "#930014",
+                        "tertiary": "#ffb3ae",
+                        "on-error": "#690005",
+                        "surface-bright": "#37393e",
+                        "surface": "#111317",
+                        "primary-container": "#568dff",
+                        "tertiary-fixed-dim": "#ffb3ae",
+                        "inverse-surface": "#e2e2e8"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(51, 53, 57, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(66, 70, 85, 0.15);
+        }
+        .sidebar-active-indicator::before {
+            content: '';
+            position: absolute;
+            left: -1rem;
+            width: 4px;
+            height: 4px;
+            background: #b0c6ff;
+            border-radius: 9999px;
+            box-shadow: 0 0 8px #b0c6ff;
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body selection:bg-primary/30">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-[#0c0e12] flex flex-col py-8 px-4 shadow-[0_0_40px_rgba(176,198,255,0.05)] z-50">
+<div class="mb-10 px-2">
+<h1 class="text-xl font-bold tracking-tighter text-white font-headline">Sentinel Cyber</h1>
+<p class="text-[10px] uppercase tracking-[0.2em] text-primary/60 font-semibold mt-1">Vigilant Lens Active</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 text-gray-500 hover:text-gray-300 transition-colors hover:bg-[#1c1f26] rounded-lg group" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="font-headline tracking-tight text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-white font-bold relative bg-[#1c1f26] rounded-lg sidebar-active-indicator" href="#">
+<span class="material-symbols-outlined text-[20px]">warning</span>
+<span class="font-headline tracking-tight text-sm">Alerts</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-gray-500 hover:text-gray-300 transition-colors hover:bg-[#1c1f26] rounded-lg group" href="#">
+<span class="material-symbols-outlined text-[20px]">assignment_late</span>
+<span class="font-headline tracking-tight text-sm">Cases</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-gray-500 hover:text-gray-300 transition-colors hover:bg-[#1c1f26] rounded-lg group" href="#">
+<span class="material-symbols-outlined text-[20px]">rule</span>
+<span class="font-headline tracking-tight text-sm">Rules Engine</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-gray-500 hover:text-gray-300 transition-colors hover:bg-[#1c1f26] rounded-lg group" href="#">
+<span class="material-symbols-outlined text-[20px]">assessment</span>
+<span class="font-headline tracking-tight text-sm">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-gray-500 hover:text-gray-300 transition-colors hover:bg-[#1c1f26] rounded-lg group" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="font-headline tracking-tight text-sm">Settings</span>
+</a>
+</nav>
+<div class="mt-auto p-2 rounded-xl bg-surface-container-low/50 flex items-center gap-3">
+<img alt="User Profile" class="w-10 h-10 rounded-lg object-cover grayscale" data-alt="Close up portrait of a serious professional male in a dark suit with dramatic studio lighting and sharp focus" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9XsBIkPPSEzq30MJHvbKKWvSs5_PY0FwNF8qE-fqBxwzfHAnhdHAAprK0WjmnzwrKUBrNCQnWbHc-2is26Deymn9PlX1Uj1FPZ58kaCY0FXt4D8aimMCqDIT1IUrWB2aIzTIRRvJsCGqi9NoZtyiVZAfpsLX1Dh0IVfIjwCukS4MhqyUWMW8IX0a4BzLJO2dxZsI7FJLIij4SHhK83vFbd9ImrIuPLXBLcwNO5K4W4N34SHzjDNJQ0qSpsRZ48VhndqMw1mK-Kjm2"/>
+<div class="overflow-hidden">
+<p class="text-xs font-bold text-white truncate">Marcus Thorne</p>
+<p class="text-[10px] text-on-surface-variant">Security Lead</p>
+</div>
+</div>
+</aside>
+<!-- Main Viewport -->
+<div class="ml-64 min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-[#111317]/40 backdrop-blur-xl border-b border-[#424655]/15 flex items-center justify-between px-8 z-40">
+<div class="flex items-center gap-4 bg-surface-container-low/80 px-4 py-1.5 rounded-lg border border-outline-variant/10 w-96 focus-within:ring-1 focus-within:ring-primary/40 transition-all">
+<span class="material-symbols-outlined text-on-surface-variant text-xl">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm text-on-surface w-full font-body placeholder:text-on-surface-variant/50" placeholder="Search accounts, transaction IDs, or entities..." type="text"/>
+</div>
+<div class="flex items-center gap-6">
+<button class="relative text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-tertiary rounded-full shadow-[0_0_8px_#ff5352]"></span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="pt-24 px-8 pb-12 flex-1">
+<!-- Page Header -->
+<div class="flex items-end justify-between mb-8">
+<div>
+<div class="flex items-center gap-4">
+<h2 class="text-4xl font-extrabold font-headline tracking-tighter text-white">Alerts</h2>
+<span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold border border-primary/20 flex items-center gap-2">
+<span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+                            1,284 Active
+                        </span>
+</div>
+<p class="text-on-surface-variant text-sm mt-2 font-medium tracking-tight">Real-time anomaly detection and fraud prevention queue.</p>
+</div>
+<div class="flex gap-3">
+<button class="bg-surface-container-high hover:bg-surface-variant text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 border border-outline-variant/20">
+<span class="material-symbols-outlined text-lg">calendar_today</span>
+                        Past 24 Hours
+                    </button>
+<button class="bg-primary hover:bg-primary/80 text-on-primary-container px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(176,198,255,0.15)]">
+<span class="material-symbols-outlined text-lg">download</span>
+                        Export
+                    </button>
+</div>
+</div>
+<!-- Filter Bar -->
+<div class="glass-panel p-4 rounded-xl flex items-center gap-4 mb-6">
+<div class="flex-1 flex gap-3">
+<div class="relative group">
+<select class="appearance-none bg-surface-container-low border border-outline-variant/20 text-xs font-semibold text-on-surface py-2 pl-4 pr-10 rounded-lg focus:ring-1 focus:ring-primary/40 focus:border-primary/40 cursor-pointer">
+<option>Severity: All</option>
+<option>Critical</option>
+<option>High</option>
+<option>Medium</option>
+<option>Low</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-sm pointer-events-none text-on-surface-variant">expand_more</span>
+</div>
+<div class="relative group">
+<select class="appearance-none bg-surface-container-low border border-outline-variant/20 text-xs font-semibold text-on-surface py-2 pl-4 pr-10 rounded-lg focus:ring-1 focus:ring-primary/40 focus:border-primary/40 cursor-pointer">
+<option>Status: New</option>
+<option>Acknowledged</option>
+<option>Resolved</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-sm pointer-events-none text-on-surface-variant">expand_more</span>
+</div>
+<div class="relative group">
+<select class="appearance-none bg-surface-container-low border border-outline-variant/20 text-xs font-semibold text-on-surface py-2 pl-4 pr-10 rounded-lg focus:ring-1 focus:ring-primary/40 focus:border-primary/40 cursor-pointer">
+<option>Type: All Models</option>
+<option>Velocity</option>
+<option>IP Geofencing</option>
+<option>Pattern Match</option>
+<option>ML Model</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-sm pointer-events-none text-on-surface-variant">expand_more</span>
+</div>
+</div>
+<div class="h-6 w-px bg-outline-variant/20 mx-2"></div>
+<div class="flex items-center gap-2 text-on-surface-variant text-xs">
+<span class="material-symbols-outlined text-sm">filter_alt</span>
+<span>12 Filters Applied</span>
+<button class="text-primary font-bold hover:underline ml-2">Clear All</button>
+</div>
+</div>
+<!-- Alerts Table -->
+<div class="glass-panel rounded-xl overflow-hidden border border-outline-variant/10">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/50">
+<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Alert ID</th>
+<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Timestamp</th>
+<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Account</th>
+<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Alert Type</th>
+<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Severity</th>
+<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Status</th>
+<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<!-- Row 1: Critical -->
+<tr class="group hover:bg-surface-variant/10 transition-colors">
+<td class="px-6 py-4 font-mono text-xs text-primary font-bold">#AL-9842</td>
+<td class="px-6 py-4 text-xs font-medium">14 Apr 2026 <span class="text-on-surface-variant/60 ml-1">09:42:15</span></td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center text-[10px] font-bold text-primary">EJ</div>
+<div>
+<p class="text-xs font-bold">Elena Jovic</p>
+<p class="text-[10px] text-on-surface-variant font-mono">0x4F...E21</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-xs font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">public</span>
+                                    IP Geofencing
+                                </span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-tertiary-container/20 text-tertiary px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-tertiary/20">Critical</span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-surface-container-high text-on-surface-variant px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-outline-variant/20">New</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-primary/20 rounded-md text-on-surface-variant hover:text-primary transition-all"><span class="material-symbols-outlined text-lg">visibility</span></button>
+<button class="p-1.5 hover:bg-secondary/20 rounded-md text-on-surface-variant hover:text-secondary transition-all"><span class="material-symbols-outlined text-lg">check_circle</span></button>
+<button class="p-1.5 hover:bg-tertiary/20 rounded-md text-on-surface-variant hover:text-tertiary transition-all"><span class="material-symbols-outlined text-lg">cancel</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 2: High -->
+<tr class="group hover:bg-surface-variant/10 transition-colors">
+<td class="px-6 py-4 font-mono text-xs text-primary font-bold">#AL-9841</td>
+<td class="px-6 py-4 text-xs font-medium">14 Apr 2026 <span class="text-on-surface-variant/60 ml-1">09:38:04</span></td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center text-[10px] font-bold text-primary">SB</div>
+<div>
+<p class="text-xs font-bold">Satoshi Bank</p>
+<p class="text-[10px] text-on-surface-variant font-mono">0x2A...D54</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-xs font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">speed</span>
+                                    Velocity Check
+                                </span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-tertiary-container/10 text-tertiary-fixed px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-tertiary-fixed/20">High</span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-primary/10 text-primary px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-primary/20">Acknowledged</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-primary/20 rounded-md text-on-surface-variant hover:text-primary transition-all"><span class="material-symbols-outlined text-lg">visibility</span></button>
+<button class="p-1.5 hover:bg-secondary/20 rounded-md text-on-surface-variant hover:text-secondary transition-all"><span class="material-symbols-outlined text-lg">check_circle</span></button>
+<button class="p-1.5 hover:bg-tertiary/20 rounded-md text-on-surface-variant hover:text-tertiary transition-all"><span class="material-symbols-outlined text-lg">cancel</span></button>
+</div>
+</td>
+</tr>
+<!-- Repeat data rows with variations -->
+<tr class="group hover:bg-surface-variant/10 transition-colors">
+<td class="px-6 py-4 font-mono text-xs text-primary font-bold">#AL-9840</td>
+<td class="px-6 py-4 text-xs font-medium">14 Apr 2026 <span class="text-on-surface-variant/60 ml-1">09:35:50</span></td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center text-[10px] font-bold text-primary">MK</div>
+<div>
+<p class="text-xs font-bold">Margo Kincaid</p>
+<p class="text-[10px] text-on-surface-variant font-mono">0x7B...C02</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-xs font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">psychology</span>
+                                    ML Model: Anomalous Value
+                                </span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-on-surface-variant/10 text-on-surface-variant px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-on-surface-variant/20">Medium</span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-secondary-container/10 text-secondary px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-secondary/20">Resolved</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-primary/20 rounded-md text-on-surface-variant hover:text-primary transition-all"><span class="material-symbols-outlined text-lg">visibility</span></button>
+<button class="p-1.5 hover:bg-secondary/20 rounded-md text-on-surface-variant hover:text-secondary transition-all"><span class="material-symbols-outlined text-lg">check_circle</span></button>
+<button class="p-1.5 hover:bg-tertiary/20 rounded-md text-on-surface-variant hover:text-tertiary transition-all"><span class="material-symbols-outlined text-lg">cancel</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="group hover:bg-surface-variant/10 transition-colors">
+<td class="px-6 py-4 font-mono text-xs text-primary font-bold">#AL-9839</td>
+<td class="px-6 py-4 text-xs font-medium">14 Apr 2026 <span class="text-on-surface-variant/60 ml-1">09:31:22</span></td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center text-[10px] font-bold text-primary">JD</div>
+<div>
+<p class="text-xs font-bold">Julian Draxler</p>
+<p class="text-[10px] text-on-surface-variant font-mono">0xCC...882</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-xs font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">pattern</span>
+                                    Pattern Match: Tumbler
+                                </span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-tertiary-container/20 text-tertiary px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-tertiary/20">Critical</span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-surface-container-high text-on-surface-variant px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-outline-variant/20">New</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-primary/20 rounded-md text-on-surface-variant hover:text-primary transition-all"><span class="material-symbols-outlined text-lg">visibility</span></button>
+<button class="p-1.5 hover:bg-secondary/20 rounded-md text-on-surface-variant hover:text-secondary transition-all"><span class="material-symbols-outlined text-lg">check_circle</span></button>
+<button class="p-1.5 hover:bg-tertiary/20 rounded-md text-on-surface-variant hover:text-tertiary transition-all"><span class="material-symbols-outlined text-lg">cancel</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="group hover:bg-surface-variant/10 transition-colors">
+<td class="px-6 py-4 font-mono text-xs text-primary font-bold">#AL-9838</td>
+<td class="px-6 py-4 text-xs font-medium">14 Apr 2026 <span class="text-on-surface-variant/60 ml-1">09:28:45</span></td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center text-[10px] font-bold text-primary">AW</div>
+<div>
+<p class="text-xs font-bold">Anna Wright</p>
+<p class="text-[10px] text-on-surface-variant font-mono">0x91...F90</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-xs font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">speed</span>
+                                    Velocity Check
+                                </span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-on-surface-variant/5 text-on-surface-variant/60 px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-outline-variant/10">Low</span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-surface-container-high text-on-surface-variant px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-outline-variant/20">New</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-primary/20 rounded-md text-on-surface-variant hover:text-primary transition-all"><span class="material-symbols-outlined text-lg">visibility</span></button>
+<button class="p-1.5 hover:bg-secondary/20 rounded-md text-on-surface-variant hover:text-secondary transition-all"><span class="material-symbols-outlined text-lg">check_circle</span></button>
+<button class="p-1.5 hover:bg-tertiary/20 rounded-md text-on-surface-variant hover:text-tertiary transition-all"><span class="material-symbols-outlined text-lg">cancel</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 6 -->
+<tr class="group hover:bg-surface-variant/10 transition-colors">
+<td class="px-6 py-4 font-mono text-xs text-primary font-bold">#AL-9837</td>
+<td class="px-6 py-4 text-xs font-medium">14 Apr 2026 <span class="text-on-surface-variant/60 ml-1">09:22:10</span></td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center text-[10px] font-bold text-primary">TR</div>
+<div>
+<p class="text-xs font-bold">Tech Re Ltd</p>
+<p class="text-[10px] text-on-surface-variant font-mono">0x55...B21</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-xs font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">public</span>
+                                    IP Geofencing
+                                </span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-tertiary-container/10 text-tertiary-fixed px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-tertiary-fixed/20">High</span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-surface-container-high text-on-surface-variant px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-outline-variant/20">New</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-primary/20 rounded-md text-on-surface-variant hover:text-primary transition-all"><span class="material-symbols-outlined text-lg">visibility</span></button>
+<button class="p-1.5 hover:bg-secondary/20 rounded-md text-on-surface-variant hover:text-secondary transition-all"><span class="material-symbols-outlined text-lg">check_circle</span></button>
+<button class="p-1.5 hover:bg-tertiary/20 rounded-md text-on-surface-variant hover:text-tertiary transition-all"><span class="material-symbols-outlined text-lg">cancel</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 7 -->
+<tr class="group hover:bg-surface-variant/10 transition-colors">
+<td class="px-6 py-4 font-mono text-xs text-primary font-bold">#AL-9836</td>
+<td class="px-6 py-4 text-xs font-medium">14 Apr 2026 <span class="text-on-surface-variant/60 ml-1">09:15:58</span></td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center text-[10px] font-bold text-primary">LL</div>
+<div>
+<p class="text-xs font-bold">Liam Lawson</p>
+<p class="text-[10px] text-on-surface-variant font-mono">0x12...E43</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-xs font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">psychology</span>
+                                    ML Model: Unusual Time
+                                </span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-on-surface-variant/10 text-on-surface-variant px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-on-surface-variant/20">Medium</span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-primary/10 text-primary px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-primary/20">Acknowledged</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-primary/20 rounded-md text-on-surface-variant hover:text-primary transition-all"><span class="material-symbols-outlined text-lg">visibility</span></button>
+<button class="p-1.5 hover:bg-secondary/20 rounded-md text-on-surface-variant hover:text-secondary transition-all"><span class="material-symbols-outlined text-lg">check_circle</span></button>
+<button class="p-1.5 hover:bg-tertiary/20 rounded-md text-on-surface-variant hover:text-tertiary transition-all"><span class="material-symbols-outlined text-lg">cancel</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 8 -->
+<tr class="group hover:bg-surface-variant/10 transition-colors">
+<td class="px-6 py-4 font-mono text-xs text-primary font-bold">#AL-9835</td>
+<td class="px-6 py-4 text-xs font-medium">14 Apr 2026 <span class="text-on-surface-variant/60 ml-1">09:12:30</span></td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center text-[10px] font-bold text-primary">PH</div>
+<div>
+<p class="text-xs font-bold">Petra Hoven</p>
+<p class="text-[10px] text-on-surface-variant font-mono">0x99...A11</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-xs font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">pattern</span>
+                                    Pattern Match: Multi-Hops
+                                </span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-tertiary-container/10 text-tertiary-fixed px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-tertiary-fixed/20">High</span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-surface-container-high text-on-surface-variant px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-outline-variant/20">New</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-primary/20 rounded-md text-on-surface-variant hover:text-primary transition-all"><span class="material-symbols-outlined text-lg">visibility</span></button>
+<button class="p-1.5 hover:bg-secondary/20 rounded-md text-on-surface-variant hover:text-secondary transition-all"><span class="material-symbols-outlined text-lg">check_circle</span></button>
+<button class="p-1.5 hover:bg-tertiary/20 rounded-md text-on-surface-variant hover:text-tertiary transition-all"><span class="material-symbols-outlined text-lg">cancel</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 9 -->
+<tr class="group hover:bg-surface-variant/10 transition-colors">
+<td class="px-6 py-4 font-mono text-xs text-primary font-bold">#AL-9834</td>
+<td class="px-6 py-4 text-xs font-medium">14 Apr 2026 <span class="text-on-surface-variant/60 ml-1">08:55:04</span></td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center text-[10px] font-bold text-primary">GC</div>
+<div>
+<p class="text-xs font-bold">Global Cargo</p>
+<p class="text-[10px] text-on-surface-variant font-mono">0x11...F66</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-xs font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">speed</span>
+                                    Velocity Check
+                                </span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-on-surface-variant/5 text-on-surface-variant/60 px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-outline-variant/10">Low</span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-secondary-container/10 text-secondary px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-secondary/20">Resolved</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-primary/20 rounded-md text-on-surface-variant hover:text-primary transition-all"><span class="material-symbols-outlined text-lg">visibility</span></button>
+<button class="p-1.5 hover:bg-secondary/20 rounded-md text-on-surface-variant hover:text-secondary transition-all"><span class="material-symbols-outlined text-lg">check_circle</span></button>
+<button class="p-1.5 hover:bg-tertiary/20 rounded-md text-on-surface-variant hover:text-tertiary transition-all"><span class="material-symbols-outlined text-lg">cancel</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 10 -->
+<tr class="group hover:bg-surface-variant/10 transition-colors">
+<td class="px-6 py-4 font-mono text-xs text-primary font-bold">#AL-9833</td>
+<td class="px-6 py-4 text-xs font-medium">14 Apr 2026 <span class="text-on-surface-variant/60 ml-1">08:42:15</span></td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center text-[10px] font-bold text-primary">OO</div>
+<div>
+<p class="text-xs font-bold">Odin Corp</p>
+<p class="text-[10px] text-on-surface-variant font-mono">0x88...D22</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-xs font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">public</span>
+                                    IP Geofencing
+                                </span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-tertiary-container/20 text-tertiary px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-tertiary/20">Critical</span>
+</td>
+<td class="px-6 py-4">
+<span class="bg-surface-container-high text-on-surface-variant px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border border-outline-variant/20">New</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-primary/20 rounded-md text-on-surface-variant hover:text-primary transition-all"><span class="material-symbols-outlined text-lg">visibility</span></button>
+<button class="p-1.5 hover:bg-secondary/20 rounded-md text-on-surface-variant hover:text-secondary transition-all"><span class="material-symbols-outlined text-lg">check_circle</span></button>
+<button class="p-1.5 hover:bg-tertiary/20 rounded-md text-on-surface-variant hover:text-tertiary transition-all"><span class="material-symbols-outlined text-lg">cancel</span></button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- Pagination -->
+<div class="bg-surface-container-low/30 px-6 py-4 flex items-center justify-between border-t border-outline-variant/10">
+<p class="text-xs text-on-surface-variant">Showing <span class="text-white font-bold">1-10</span> of 1,284 results</p>
+<div class="flex items-center gap-2">
+<button class="p-2 bg-surface-container-high rounded border border-outline-variant/20 text-on-surface-variant hover:text-white disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-lg">chevron_left</span>
+</button>
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 flex items-center justify-center text-xs font-bold rounded bg-primary text-on-primary-container">1</button>
+<button class="w-8 h-8 flex items-center justify-center text-xs font-bold rounded hover:bg-surface-container-high text-on-surface-variant transition-colors">2</button>
+<button class="w-8 h-8 flex items-center justify-center text-xs font-bold rounded hover:bg-surface-container-high text-on-surface-variant transition-colors">3</button>
+<span class="px-1 text-on-surface-variant">...</span>
+<button class="w-8 h-8 flex items-center justify-center text-xs font-bold rounded hover:bg-surface-container-high text-on-surface-variant transition-colors">129</button>
+</div>
+<button class="p-2 bg-surface-container-high rounded border border-outline-variant/20 text-on-surface-variant hover:text-white">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Floating Stats Backdrop Decorative -->
+<div class="fixed top-[20%] right-[-5%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full pointer-events-none"></div>
+<div class="fixed bottom-[-5%] left-[-5%] w-[30%] h-[30%] bg-tertiary/5 blur-[100px] rounded-full pointer-events-none"></div>
+</body></html>

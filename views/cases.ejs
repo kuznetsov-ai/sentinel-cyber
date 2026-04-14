@@ -1,0 +1,145 @@
+<div class="sc-page-header">
+  <div>
+    <h2>Cases</h2>
+    <p>Fraud investigation case management &mdash; <%= total %> total cases</p>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button class="sc-btn sc-btn-ghost"><span class="material-symbols-outlined">sort</span>Sort</button>
+    <button class="sc-btn sc-btn-primary"><span class="material-symbols-outlined">add</span>New Case</button>
+  </div>
+</div>
+
+<!-- Summary KPIs -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;">
+  <div class="sc-card sc-kpi">
+    <div class="kpi-label">Open Cases</div>
+    <div class="kpi-val" style="color:var(--danger);"><%= summary.open %></div>
+    <div class="kpi-trend down">Requires attention</div>
+  </div>
+  <div class="sc-card sc-kpi">
+    <div class="kpi-label">Under Review</div>
+    <div class="kpi-val" style="color:var(--warning);"><%= summary.under_review %></div>
+    <div class="kpi-trend neutral">In progress</div>
+  </div>
+  <div class="sc-card sc-kpi">
+    <div class="kpi-label">Closed This Week</div>
+    <div class="kpi-val" style="color:var(--success);"><%= summary.closed_week %></div>
+    <div class="kpi-trend up">Good throughput</div>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="sc-filters">
+  <form method="GET" action="/cases" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+    <select name="risk" class="sc-select" onchange="this.form.submit()">
+      <option value="">All Risk Levels</option>
+      <option value="Critical">Critical</option>
+      <option value="High">High</option>
+      <option value="Medium">Medium</option>
+      <option value="Low">Low</option>
+    </select>
+    <select name="status" class="sc-select" onchange="this.form.submit()">
+      <option value="">All Statuses</option>
+      <option value="Open">Open</option>
+      <option value="Under Review">Under Review</option>
+      <option value="Escalated">Escalated</option>
+      <option value="Closed">Closed</option>
+    </select>
+    <select name="analyst" class="sc-select" onchange="this.form.submit()">
+      <option value="">All Analysts</option>
+      <option value="unassigned">Unassigned</option>
+    </select>
+  </form>
+</div>
+
+<!-- Cases Table -->
+<div class="sc-card" style="padding:0;">
+  <div class="sc-table-wrap">
+    <table class="sc-table">
+      <thead>
+        <tr>
+          <th>Case ID</th>
+          <th>Created</th>
+          <th>Account</th>
+          <th>Risk</th>
+          <th>Detection</th>
+          <th>Analyst</th>
+          <th>Last Updated</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (cases.length === 0) { %>
+        <tr><td colspan="9" class="sc-empty">No cases found.</td></tr>
+        <% } else { %>
+        <% for (const c of cases) { %>
+        <tr>
+          <td class="td-mono"><%= c.case_code %></td>
+          <td class="td-muted"><%= c.created_at %></td>
+          <td>
+            <div style="font-size:13px;font-weight:500;"><%= c.account_email %></div>
+            <div class="td-muted" style="font-family:monospace;font-size:11px;"><%= c.account_uuid.slice(0,8) %>…</div>
+          </td>
+          <td>
+            <span class="sc-badge badge-<%= c.risk_level.toLowerCase() %>"><%= c.risk_level %></span>
+          </td>
+          <td>
+            <% const methClass = {
+              'Velocity':  'badge-velocity',
+              'ML Model':  'badge-ml-model',
+              'Pattern':   'badge-pattern',
+              'Threshold': 'badge-threshold'
+            }[c.detection_method] || 'badge-medium'; %>
+            <span class="sc-badge <%= methClass %>"><%= c.detection_method %></span>
+          </td>
+          <td>
+            <% if (c.assigned_to) { %>
+            <div style="display:flex;align-items:center;gap:7px;">
+              <div style="width:26px;height:26px;border-radius:50%;background:var(--surface-3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--primary);flex-shrink:0;">
+                <%= c.assigned_to.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase() %>
+              </div>
+              <span style="font-size:12.5px;"><%= c.assigned_to %></span>
+            </div>
+            <% } else { %>
+            <span class="td-muted" style="font-size:12px;">— Unassigned</span>
+            <% } %>
+          </td>
+          <td class="td-muted"><%= c.last_updated %></td>
+          <td>
+            <% const stCls = {
+              'Open':         'badge-open',
+              'Under Review': 'badge-under-review',
+              'Escalated':    'badge-escalated',
+              'Closed':       'badge-closed'
+            }[c.status] || 'badge-open'; %>
+            <span class="sc-badge <%= stCls %>"><%= c.status %></span>
+          </td>
+          <td>
+            <a href="/cases/<%= c.id %>" class="sc-btn sc-btn-ghost" style="text-decoration:none;padding:5px 10px;font-size:12px;">
+              <span class="material-symbols-outlined" style="font-size:14px;">open_in_new</span>Open Case
+            </a>
+          </td>
+        </tr>
+        <% } %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="sc-pager" style="padding:14px 20px;">
+    <span>Showing <%= (page - 1) * 10 + 1 %>–<%= Math.min(page * 10, total) %> of <%= total %> cases</span>
+    <div class="sc-pager-btns">
+      <button onclick="location.href='/cases?page=<%= page - 1 %>'" <%- page <= 1 ? 'disabled' : '' %>>
+        <span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">chevron_left</span>
+      </button>
+      <% for (let p = Math.max(1, page - 2); p <= Math.min(pages, page + 2); p++) { %>
+      <button class="<%= p === page ? 'active' : '' %>" onclick="location.href='/cases?page=<%= p %>'"><%= p %></button>
+      <% } %>
+      <button onclick="location.href='/cases?page=<%= page + 1 %>'" <%- page >= pages ? 'disabled' : '' %>>
+        <span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">chevron_right</span>
+      </button>
+    </div>
+  </div>
+</div>

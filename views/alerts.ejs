@@ -1,0 +1,130 @@
+<div class="sc-page-header">
+  <div>
+    <h2>Alerts</h2>
+    <p><%= total %> total alerts &mdash; page <%= page %> of <%= pages %></p>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button class="sc-btn sc-btn-ghost"><span class="material-symbols-outlined">filter_list</span>Filters</button>
+    <button class="sc-btn sc-btn-primary"><span class="material-symbols-outlined">download</span>Export CSV</button>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="sc-filters">
+  <form method="GET" action="/alerts" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+    <select name="severity" class="sc-select" onchange="this.form.submit()">
+      <option value="" <%- filters.severity === '' ? 'selected' : '' %>>All Severities</option>
+      <option value="Critical"     <%- filters.severity === 'Critical'     ? 'selected' : '' %>>Critical</option>
+      <option value="High"         <%- filters.severity === 'High'         ? 'selected' : '' %>>High</option>
+      <option value="Medium"       <%- filters.severity === 'Medium'       ? 'selected' : '' %>>Medium</option>
+      <option value="Low"          <%- filters.severity === 'Low'          ? 'selected' : '' %>>Low</option>
+    </select>
+    <select name="status" class="sc-select" onchange="this.form.submit()">
+      <option value="" <%- filters.status === '' ? 'selected' : '' %>>All Statuses</option>
+      <option value="New"          <%- filters.status === 'New'          ? 'selected' : '' %>>New</option>
+      <option value="Acknowledged" <%- filters.status === 'Acknowledged' ? 'selected' : '' %>>Acknowledged</option>
+      <option value="Resolved"     <%- filters.status === 'Resolved'     ? 'selected' : '' %>>Resolved</option>
+    </select>
+    <select name="type" class="sc-select" onchange="this.form.submit()">
+      <option value="" <%- filters.type === '' ? 'selected' : '' %>>All Types</option>
+      <option value="Velocity"  <%- filters.type === 'Velocity'  ? 'selected' : '' %>>Velocity</option>
+      <option value="ML Model"  <%- filters.type === 'ML Model'  ? 'selected' : '' %>>ML Model</option>
+      <option value="Pattern"   <%- filters.type === 'Pattern'   ? 'selected' : '' %>>Pattern</option>
+      <option value="Threshold" <%- filters.type === 'Threshold' ? 'selected' : '' %>>Threshold</option>
+    </select>
+    <% if (filters.severity || filters.status || filters.type) { %>
+    <a href="/alerts" class="sc-btn sc-btn-ghost" style="text-decoration:none;">
+      <span class="material-symbols-outlined">close</span>Clear
+    </a>
+    <% } %>
+  </form>
+</div>
+
+<!-- Table -->
+<div class="sc-card" style="padding:0;">
+  <div class="sc-table-wrap">
+    <table class="sc-table">
+      <thead>
+        <tr>
+          <th>Alert ID</th>
+          <th>Time</th>
+          <th>Account</th>
+          <th>Type</th>
+          <th>Severity</th>
+          <th>Details</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (alerts.length === 0) { %>
+        <tr><td colspan="8" class="sc-empty">No alerts match the current filters.</td></tr>
+        <% } else { %>
+        <% for (const alert of alerts) { %>
+        <tr>
+          <td class="td-mono"><%= alert.alert_code %></td>
+          <td class="td-muted"><%= alert.timestamp %></td>
+          <td>
+            <div style="font-size:13px;font-weight:500;"><%= alert.account_name %></div>
+            <div class="td-muted" style="font-family:monospace;font-size:11px;"><%= alert.account_uuid.slice(0,8) %>…</div>
+          </td>
+          <td>
+            <% const typeClass = {
+              'Velocity': 'badge-velocity',
+              'ML Model': 'badge-ml-model',
+              'Pattern':  'badge-pattern',
+              'Threshold':'badge-threshold'
+            }[alert.alert_type] || 'badge-medium'; %>
+            <span class="sc-badge <%= typeClass %>"><%= alert.alert_type %></span>
+          </td>
+          <td>
+            <span class="sc-badge badge-<%= alert.severity.toLowerCase() %>"><%= alert.severity %></span>
+          </td>
+          <td class="td-muted" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= alert.details %>"><%= alert.details %></td>
+          <td>
+            <% const stCls = {
+              'New':          'badge-new',
+              'Acknowledged': 'badge-acknowledged',
+              'Resolved':     'badge-resolved'
+            }[alert.status] || 'badge-new'; %>
+            <span class="sc-badge <%= stCls %>"><%= alert.status %></span>
+          </td>
+          <td>
+            <div style="display:flex;gap:2px;">
+              <button class="icon-btn" title="View details" data-action="view-alert" data-id="<%= alert.id %>">
+                <span class="material-symbols-outlined">visibility</span>
+              </button>
+              <button class="icon-btn" title="Acknowledge" data-action="ack-alert" data-id="<%= alert.id %>" style="<%= alert.status !== 'New' ? 'opacity:0.3;pointer-events:none;' : '' %>">
+                <span class="material-symbols-outlined">check_circle</span>
+              </button>
+              <button class="icon-btn" title="Dismiss" data-action="dismiss-alert" data-id="<%= alert.id %>" style="color:rgba(255,83,82,0.6);">
+                <span class="material-symbols-outlined">cancel</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <% } %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="sc-pager" style="padding:14px 20px;">
+    <span>Showing <%= (page - 1) * 10 + 1 %>–<%= Math.min(page * 10, total) %> of <%= total %> alerts</span>
+    <div class="sc-pager-btns">
+      <button onclick="location.href='/alerts?page=<%= page - 1 %>&severity=<%= filters.severity %>&status=<%= filters.status %>&type=<%= filters.type %>'" <%- page <= 1 ? 'disabled' : '' %>>
+        <span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">chevron_left</span>
+      </button>
+      <% for (let p = Math.max(1, page - 2); p <= Math.min(pages, page + 2); p++) { %>
+      <button class="<%= p === page ? 'active' : '' %>"
+        onclick="location.href='/alerts?page=<%= p %>&severity=<%= filters.severity %>&status=<%= filters.status %>&type=<%= filters.type %>'">
+        <%= p %>
+      </button>
+      <% } %>
+      <button onclick="location.href='/alerts?page=<%= page + 1 %>&severity=<%= filters.severity %>&status=<%= filters.status %>&type=<%= filters.type %>'" <%- page >= pages ? 'disabled' : '' %>>
+        <span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">chevron_right</span>
+      </button>
+    </div>
+  </div>
+</div>

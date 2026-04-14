@@ -1,0 +1,220 @@
+<%
+const maxCount = Math.max(...stats.timeline.map(t => t.count), 1);
+const pts = stats.timeline.map((t, i) => {
+  const x = (i / 23) * 780 + 10;
+  const y = 110 - ((t.count / maxCount) * 90);
+  return x.toFixed(1) + ',' + y.toFixed(1);
+}).join(' ');
+const area = 'M10,' + (110 - ((stats.timeline[0].count / maxCount) * 90)).toFixed(1)
+  + ' ' + stats.timeline.map((t, i) => {
+    const x = (i / 23) * 780 + 10;
+    const y = 110 - ((t.count / maxCount) * 90);
+    return 'L' + x.toFixed(1) + ',' + y.toFixed(1);
+  }).join(' ')
+  + ' L790,110 L10,110 Z';
+%>
+<div class="sc-page-header">
+  <div>
+    <h2>Dashboard</h2>
+    <p>Real-time fraud monitoring overview &mdash; last updated just now</p>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <span style="font-size:11px;color:var(--text-muted);">Auto-refresh: 30s</span>
+    <button class="sc-btn sc-btn-ghost"><span class="material-symbols-outlined">refresh</span>Refresh</button>
+    <button class="sc-btn sc-btn-primary"><span class="material-symbols-outlined">download</span>Export</button>
+  </div>
+</div>
+
+<!-- KPI row -->
+<div class="sc-kpi-grid">
+  <div class="sc-card sc-kpi">
+    <div class="kpi-label">Total Alerts</div>
+    <div class="kpi-val"><%= stats.total_alerts %></div>
+    <div class="kpi-trend down"><span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;">arrow_upward</span>+12% vs yesterday</div>
+  </div>
+  <div class="sc-card sc-kpi" style="--accent:var(--danger);">
+    <div class="kpi-label">New Alerts</div>
+    <div class="kpi-val" style="color:var(--danger);"><%= stats.new_alerts %></div>
+    <div class="kpi-trend down"><span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;">arrow_upward</span>+8 since midnight</div>
+  </div>
+  <div class="sc-card sc-kpi">
+    <div class="kpi-label">Active Cases</div>
+    <div class="kpi-val" style="color:var(--warning);"><%= stats.active_cases %></div>
+    <div class="kpi-trend neutral"><span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;">remove</span>No change</div>
+  </div>
+  <div class="sc-card sc-kpi">
+    <div class="kpi-label">Blocked Today</div>
+    <div class="kpi-val" style="color:var(--success);"><%= stats.blocked_today %></div>
+    <div class="kpi-trend up"><span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;">arrow_upward</span>+3 blocked</div>
+  </div>
+</div>
+
+<!-- Row: timeline + risk score -->
+<div style="display:grid;grid-template-columns:1fr 260px;gap:14px;margin-bottom:14px;">
+
+  <!-- Timeline chart -->
+  <div class="sc-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div>
+        <h3>Alert Volume &mdash; 24h</h3>
+        <div class="sc-card-sub">Hourly alert count with spike detection</div>
+      </div>
+      <span class="sc-badge badge-new" style="font-size:10px;">Live</span>
+    </div>
+    <svg viewBox="0 0 800 120" style="width:100%;height:120px;overflow:visible;">
+      <!-- grid lines -->
+      <% [0,30,60,90].forEach(y => { %>
+      <line x1="10" y1="<%= y+10 %>" x2="790" y2="<%= y+10 %>" stroke="rgba(66,70,85,0.18)" stroke-width="1" stroke-dasharray="4,4"/>
+      <% }) %>
+      <!-- area fill -->
+      <path d="<%= area %>" fill="url(#areaGrad)" opacity="0.25"/>
+      <!-- spikes highlight -->
+      <% stats.timeline.forEach((t, i) => {
+        if (t.is_spike) {
+          const x = (i / 23) * 780 + 10;
+          const y = 110 - ((t.count / maxCount) * 90);
+      %>
+      <circle cx="<%= x.toFixed(1) %>" cy="<%= y.toFixed(1) %>" r="5" fill="var(--danger)" opacity="0.7"/>
+      <% }}) %>
+      <!-- line -->
+      <polyline points="<%= pts %>" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <!-- hour labels -->
+      <% [0,6,12,18,23].forEach(i => {
+        const x = (i / 23) * 780 + 10;
+      %>
+      <text x="<%= x.toFixed(1) %>" y="118" text-anchor="middle" font-size="9" fill="var(--text-muted)" font-family="Inter,sans-serif"><%= String(i).padStart(2,'0') %>h</text>
+      <% }) %>
+      <defs>
+        <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.5"/>
+          <stop offset="100%" stop-color="var(--primary)" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+
+  <!-- Avg risk score -->
+  <div class="sc-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;">
+    <div style="text-align:center;">
+      <div class="sc-card-sub" style="margin-bottom:6px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;">Avg Risk Score</div>
+      <div style="font-family:'Manrope',sans-serif;font-size:52px;font-weight:800;color:var(--warning);line-height:1;"><%= stats.avg_risk_score %></div>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">out of 100</div>
+    </div>
+    <!-- mini donut -->
+    <%
+      const angle = (stats.avg_risk_score / 100) * 283;
+      const r = 45, cx2 = 60, cy2 = 60;
+    %>
+    <svg viewBox="0 0 120 120" width="120" height="120">
+      <circle cx="<%= cx2 %>" cy="<%= cy2 %>" r="<%= r %>" fill="none" stroke="rgba(66,70,85,0.3)" stroke-width="10"/>
+      <circle cx="<%= cx2 %>" cy="<%= cy2 %>" r="<%= r %>" fill="none" stroke="var(--warning)" stroke-width="10"
+        stroke-dasharray="<%= angle.toFixed(1) %> 283"
+        stroke-dashoffset="0" stroke-linecap="round"
+        transform="rotate(-90 <%= cx2 %> <%= cy2 %>)"/>
+      <text x="<%= cx2 %>" y="<%= cy2+5 %>" text-anchor="middle" font-size="14" font-weight="700" fill="var(--text)" font-family="Inter,sans-serif">Medium</text>
+    </svg>
+    <div style="display:flex;gap:6px;">
+      <span class="sc-badge badge-low">Low 0–30</span>
+      <span class="sc-badge badge-medium">Med 31–59</span>
+    </div>
+  </div>
+</div>
+
+<!-- Row: recent alerts + quick stats -->
+<div style="display:grid;grid-template-columns:1fr 280px;gap:14px;">
+
+  <!-- Recent alerts mini-table -->
+  <div class="sc-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <h3>Recent Alerts</h3>
+      <a href="/alerts" class="sc-btn sc-btn-ghost" style="text-decoration:none;font-size:12px;">View all</a>
+    </div>
+    <div class="sc-table-wrap">
+      <table class="sc-table">
+        <thead>
+          <tr>
+            <th>Alert ID</th>
+            <th>Account</th>
+            <th>Type</th>
+            <th>Severity</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="td-mono">ALT-0091</td>
+            <td>John Doe <span class="td-muted">• a3f…</span></td>
+            <td class="td-muted">Velocity</td>
+            <td><span class="sc-badge badge-critical">Critical</span></td>
+            <td><span class="sc-badge badge-new">New</span></td>
+          </tr>
+          <tr>
+            <td class="td-mono">ALT-0090</td>
+            <td>Maria V. <span class="td-muted">• b7c…</span></td>
+            <td class="td-muted">ML Model</td>
+            <td><span class="sc-badge badge-high">High</span></td>
+            <td><span class="sc-badge badge-acknowledged">Ack'd</span></td>
+          </tr>
+          <tr>
+            <td class="td-mono">ALT-0089</td>
+            <td>Alex K. <span class="td-muted">• c9d…</span></td>
+            <td class="td-muted">Pattern</td>
+            <td><span class="sc-badge badge-medium">Medium</span></td>
+            <td><span class="sc-badge badge-new">New</span></td>
+          </tr>
+          <tr>
+            <td class="td-mono">ALT-0088</td>
+            <td>Sam T. <span class="td-muted">• d2e…</span></td>
+            <td class="td-muted">Threshold</td>
+            <td><span class="sc-badge badge-low">Low</span></td>
+            <td><span class="sc-badge badge-resolved">Resolved</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Quick stats sidebar -->
+  <div style="display:flex;flex-direction:column;gap:14px;">
+    <div class="sc-card">
+      <h3 style="margin-bottom:14px;">By Severity</h3>
+      <% const sevs = [
+        {label:'Critical', cls:'badge-critical', val:14, pct:12},
+        {label:'High',     cls:'badge-high',     val:31, pct:26},
+        {label:'Medium',   cls:'badge-medium',   val:47, pct:39},
+        {label:'Low',      cls:'badge-low',       val:28, pct:23},
+      ]; %>
+      <% for (const s of sevs) { %>
+      <div style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+          <span class="sc-badge <%= s.cls %>"><%= s.label %></span>
+          <span style="color:var(--text-muted);font-size:11px;"><%= s.val %></span>
+        </div>
+        <div style="height:4px;background:rgba(66,70,85,0.35);border-radius:2px;overflow:hidden;">
+          <div style="width:<%= s.pct %>%;height:100%;background:var(--primary);border-radius:2px;opacity:0.7;"></div>
+        </div>
+      </div>
+      <% } %>
+    </div>
+
+    <div class="sc-card">
+      <h3 style="margin-bottom:14px;">System Health</h3>
+      <% const health = [
+        {label:'Rules Engine', ok:true},
+        {label:'ML Pipeline',  ok:true},
+        {label:'Alert Queue',  ok:false},
+        {label:'DB Sync',      ok:true},
+      ]; %>
+      <% for (const h of health) { %>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(66,70,85,0.12);">
+        <span style="font-size:12.5px;"><%= h.label %></span>
+        <% if (h.ok) { %>
+        <span style="font-size:11px;color:var(--success);font-weight:600;">&#x25cf; OK</span>
+        <% } else { %>
+        <span style="font-size:11px;color:var(--warning);font-weight:600;">&#x25cf; Warn</span>
+        <% } %>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</div>

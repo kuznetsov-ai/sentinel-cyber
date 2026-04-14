@@ -1,0 +1,11 @@
+node_modules/
+db/sentinel.db
+db/sentinel.db-wal
+db/sentinel.db-shm
+*.db
+*.db-wal
+*.db-shm
+.env
+.env.*
+.DS_Store
+storage_layout/
