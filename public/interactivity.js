@@ -603,44 +603,46 @@
   }
 
   function initSidebarToggle() {
-    const btn = document.getElementById('sidebar-toggle');
+    const burger = document.getElementById('sidebar-toggle');         // topbar, mobile only
+    const collapseBtn = document.getElementById('sidebar-collapse');  // inside sidebar, desktop only
     const backdrop = document.getElementById('sidebar-backdrop');
-    if (!btn) return;
 
     const MOBILE_QUERY = '(max-width: 860px)';
     const STORAGE_KEY = 'sentinel.sidebar.collapsed';
     const isMobile = () => window.matchMedia(MOBILE_QUERY).matches;
-    const iconEl = btn.querySelector('.material-symbols-outlined');
 
-    function updateIcon() {
-      if (!iconEl) return;
-      if (isMobile()) {
-        iconEl.textContent = 'menu';
-        btn.setAttribute('aria-label', 'Open menu');
-      } else if (document.body.classList.contains('sidebar-collapsed')) {
-        iconEl.textContent = 'chevron_right';   // → expand
-        btn.setAttribute('aria-label', 'Expand sidebar');
-      } else {
-        iconEl.textContent = 'chevron_left';    // ← collapse
-        btn.setAttribute('aria-label', 'Collapse sidebar');
-      }
+    const collapseIcon = collapseBtn ? collapseBtn.querySelector('.material-symbols-outlined') : null;
+    const collapseLabel = collapseBtn ? collapseBtn.querySelector('.sidebar-collapse__label') : null;
+
+    function updateCollapseControl() {
+      if (!collapseBtn || !collapseIcon) return;
+      const collapsed = document.body.classList.contains('sidebar-collapsed');
+      collapseIcon.textContent = collapsed ? 'chevron_right' : 'chevron_left';
+      collapseBtn.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+      if (collapseLabel) collapseLabel.textContent = collapsed ? 'Expand' : 'Collapse';
     }
 
     // Apply persisted desktop state on load
     if (!isMobile() && localStorage.getItem(STORAGE_KEY) === '1') {
       document.body.classList.add('sidebar-collapsed');
     }
-    updateIcon();
+    updateCollapseControl();
 
-    btn.addEventListener('click', function () {
-      if (isMobile()) {
+    if (burger) {
+      burger.addEventListener('click', function () {
+        // Burger is hidden on desktop via CSS, so this only fires on mobile.
         document.body.classList.toggle('sidebar-open');
-      } else {
+      });
+    }
+
+    if (collapseBtn) {
+      collapseBtn.addEventListener('click', function () {
+        // Collapse button is hidden on mobile via CSS, so desktop-only.
         const collapsed = document.body.classList.toggle('sidebar-collapsed');
         try { localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0'); } catch (_) {}
-        updateIcon();
-      }
-    });
+        updateCollapseControl();
+      });
+    }
 
     if (backdrop) {
       backdrop.addEventListener('click', function () {
@@ -667,7 +669,7 @@
           document.body.classList.add('sidebar-collapsed');
         }
       }
-      updateIcon();
+      updateCollapseControl();
     });
   }
 

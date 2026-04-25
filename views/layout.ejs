@@ -222,6 +222,24 @@
   }
   #sidebar-toggle:hover { background: rgba(176,198,255,0.07); color: var(--text); }
   #sidebar-toggle .material-symbols-outlined { font-size: 22px; }
+
+  /* ── SIDEBAR COLLAPSE (desktop only, lives inside #sidebar) ── */
+  #sidebar-collapse {
+    margin: 12px 12px 0;
+    padding: 9px 12px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-family: inherit; font-size: 12.5px; font-weight: 500;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    transition: all 0.15s;
+  }
+  #sidebar-collapse:hover { background: rgba(176,198,255,0.06); color: var(--text); border-color: rgba(176,198,255,0.2); }
+  #sidebar-collapse .material-symbols-outlined { font-size: 18px; flex-shrink: 0; }
+  body.sidebar-collapsed #sidebar-collapse { justify-content: center; padding: 9px 0; margin: 12px 8px 0; }
+  body.sidebar-collapsed #sidebar-collapse .sidebar-collapse__label { display: none; }
   #sidebar-backdrop {
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
@@ -305,10 +323,16 @@
     .sc-table-wrap { overflow-x: auto; }
     /* Optional column hiding for tables that mark non-essential columns */
     .col-hide-mobile { display: none !important; }
+    /* On phones the sidebar is the drawer — its in-sidebar collapse
+       button has no meaning. Hide it; the topbar burger covers open/close. */
+    #sidebar-collapse { display: none; }
   }
   /* On non-mobile, keep desktop behaviour: sidebar always visible, no backdrop */
   @media (min-width: 861px) {
     body.sidebar-open #sidebar-backdrop { opacity: 0; pointer-events: none; }
+    /* Burger in the topbar is mobile-only; on desktop the in-sidebar
+       collapse button takes its job. */
+    #sidebar-toggle { display: none; }
   }
 
   /* ── DEMO BANNER ── */
@@ -366,6 +390,10 @@
       <span>Admin</span>
     </div>
   </div>
+  <button id="sidebar-collapse" type="button" aria-label="Collapse sidebar">
+    <span class="material-symbols-outlined">chevron_left</span>
+    <span class="sidebar-collapse__label nav-label">Collapse</span>
+  </button>
 </nav>
 
 <!-- TOPBAR -->
