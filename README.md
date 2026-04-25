@@ -132,7 +132,12 @@ timeline (id, hour, count, is_spike, spike_label)
 
 ## Deployment (sentinel.ekuznetsov.dev)
 
-Hosted on Silver Server (Hetzner) behind Caddy, served by a `sentinel` system user via `systemd`. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full path.
+Hosted on Silver Server (Hetzner) behind Caddy, served by a `sentinel` system user via `systemd`.
+
+**Auto-deploy on push to `main`** via GitHub Actions (`.github/workflows/deploy.yml`):
+SSH to Silver as a restricted `sentinel-deploy` user (write access only to `/opt/sentinel-cyber`, NOPASSWD sudo limited to `systemctl restart sentinel-cyber` and `chown`), rsync, `npm ci --omit=dev`, restart, smoke-test the public URL.
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full path.
 
 ## License
 

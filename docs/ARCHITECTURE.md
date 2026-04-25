@@ -155,18 +155,39 @@ Cloudflare zone `ekuznetsov.dev`:
 
 ### Redeploy
 
-```bash
-# from local repo root
-rsync -az --delete \
-  --exclude=node_modules --exclude=.git \
-  --exclude='db/sentinel.db*' --exclude='db/sessions' \
-  ./ root@89.167.108.210:/opt/sentinel-cyber/
+Push to `main`. That's it.
 
-ssh root@89.167.108.210 '
+`.github/workflows/deploy.yml` triggers on every push and on manual `workflow_dispatch`. Steps:
+
+1. Checkout.
+2. Drop the SSH private key from the `SENTINEL_DEPLOY_KEY` repo secret into `~/.ssh/id_ed25519`, fingerprint Silver into `known_hosts`.
+3. `rsync -az --delete` to `sentinel-deploy@89.167.108.210:/opt/sentinel-cyber/`, excluding `node_modules`, `.git`, `.github`, the local `db/sentinel.db*` files, and the `db/sessions/` runtime tree.
+4. `ssh sentinel-deploy@…` to run `npm ci --omit=dev`, `sudo chown -R sentinel:sentinel`, `sudo systemctl restart sentinel-cyber`.
+5. Smoke-test: `curl https://sentinel.ekuznetsov.dev/`, retry up to 5×.
+
+The `sentinel-deploy` user is intentionally restricted:
+
+- **No shell login** beyond what rsync/ssh-exec needs.
+- **Write access** scoped to `/opt/sentinel-cyber/` (group write via `chmod g+w` + group ownership).
+- **Sudoers** allow only:
+  - `/usr/bin/systemctl restart sentinel-cyber`
+  - `/usr/bin/systemctl reload sentinel-cyber`
+  - `/usr/bin/chown -R sentinel:sentinel /opt/sentinel-cyber`
+
+A leaked deploy key cannot escalate beyond redeploying the same service.
+
+**Manual deploy** (only for emergencies, when CI is broken):
+
+```bash
+rsync -az --delete \
+  --exclude=node_modules --exclude=.git --exclude=.github \
+  --exclude='db/sentinel.db*' --exclude='db/sessions' \
+  ./ sentinel-deploy@89.167.108.210:/opt/sentinel-cyber/
+ssh sentinel-deploy@89.167.108.210 '
   cd /opt/sentinel-cyber &&
   npm ci --omit=dev &&
-  chown -R sentinel:sentinel /opt/sentinel-cyber &&
-  systemctl restart sentinel-cyber
+  sudo /usr/bin/chown -R sentinel:sentinel /opt/sentinel-cyber &&
+  sudo /usr/bin/systemctl restart sentinel-cyber
 '
 ```
 

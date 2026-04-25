@@ -27,11 +27,20 @@ jobs:
           ssh-keyscan -H 89.167.108.210 >> ~/.ssh/known_hosts 2>/dev/null
 
       - name: Rsync to server
+        # NOTE: --delete is intentionally omitted. The remote /opt/sentinel-cyber/
+        # also holds runtime artefacts the repo doesn't (and shouldn't) ship:
+        #   - .env             environment file with secrets / port / NODE_ENV
+        #   - server.log       systemd append-target
+        #   - db/sessions/*    per-visitor SQLite sandboxes
+        # Wiping them on every deploy breaks the unit (no .env → "Failed to load
+        # environment files") and erases live demo state. If you ever need to
+        # purge stale repo files, do it manually as root.
         run: |
-          rsync -az --delete \
+          rsync -az \
             --exclude='node_modules' \
             --exclude='.git' \
             --exclude='.github' \
+            --exclude='.env' \
             --exclude='db/sentinel.db' \
             --exclude='db/sentinel.db-shm' \
             --exclude='db/sentinel.db-wal' \
