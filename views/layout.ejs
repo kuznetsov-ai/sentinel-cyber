@@ -245,8 +245,19 @@
   /* ── MOBILE LAYOUT ── */
   @media (max-width: 860px) {
     :root { --sidebar-w: 240px; }
-    /* Drawer mode — sidebar slides in from the left */
-    #sidebar { transform: translateX(-100%); width: var(--sidebar-w); box-shadow: 0 0 60px rgba(0,0,0,0.7); }
+    /* Belt-and-braces: a translated-out drawer + an SVG with overflow:visible
+       can each leak a few hundred px into the page's scrollWidth on phones.
+       Clipping at the body level guarantees no horizontal scrollbar. */
+    html, body { overflow-x: hidden; }
+    /* Drawer mode — sidebar slides in from the left.
+       contain: paint stops it contributing to scrollWidth while off-canvas. */
+    #sidebar {
+      transform: translateX(-100%);
+      width: var(--sidebar-w);
+      box-shadow: 0 0 60px rgba(0,0,0,0.7);
+      contain: paint;
+    }
+    body.sidebar-open #sidebar { contain: none; }
     body.sidebar-open #sidebar { transform: translateX(0); }
     /* Topbar takes full width — sidebar no longer reserves space */
     #topbar { left: 0; padding: 0 14px; }
