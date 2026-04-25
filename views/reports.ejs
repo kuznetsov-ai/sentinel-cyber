@@ -74,44 +74,52 @@ const sevArcs = charts.by_severity.map(d => {
   </div>
 
   <!-- Severity bar chart -->
+  <%
+    const sevBarW = 44, sevStep = 72, sevLeft = 30, sevRight = 14;
+    const sevVbW = sevLeft + (charts.by_severity.length - 1) * sevStep + sevBarW + sevRight;
+  %>
   <div class="sc-card">
     <h3 style="margin-bottom:16px;">Alerts by Severity</h3>
-    <svg viewBox="0 0 320 160" style="width:100%;height:160px;overflow:visible;">
+    <svg viewBox="0 0 <%= sevVbW %> 160" preserveAspectRatio="xMidYMid meet" style="width:100%;height:160px;display:block;">
       <% charts.by_severity.forEach((d, i) => {
         const barH = Math.max(4, (d.count / maxSev) * 130);
-        const x = 30 + i * 72;
+        const x = sevLeft + i * sevStep;
         const y = 140 - barH;
         const col = sevColors[d.severity] || '#8c90a1';
       %>
-      <rect x="<%= x %>" y="<%= y.toFixed(1) %>" width="44" height="<%= barH.toFixed(1) %>"
+      <rect x="<%= x %>" y="<%= y.toFixed(1) %>" width="<%= sevBarW %>" height="<%= barH.toFixed(1) %>"
         rx="4" fill="<%= col %>" opacity="0.75"/>
-      <text x="<%= x + 22 %>" y="<%= (y - 5).toFixed(1) %>" text-anchor="middle"
+      <text x="<%= x + sevBarW/2 %>" y="<%= (y - 5).toFixed(1) %>" text-anchor="middle"
         font-size="10" font-weight="700" fill="<%= col %>" font-family="Inter,sans-serif"><%= d.count %></text>
-      <text x="<%= x + 22 %>" y="154" text-anchor="middle"
+      <text x="<%= x + sevBarW/2 %>" y="154" text-anchor="middle"
         font-size="9" fill="var(--text-muted)" font-family="Inter,sans-serif"><%= d.severity.slice(0,4) %></text>
       <% }) %>
-      <line x1="20" y1="140" x2="310" y2="140" stroke="rgba(66,70,85,0.3)" stroke-width="1"/>
+      <line x1="<%= sevLeft - 10 %>" y1="140" x2="<%= sevVbW - 10 %>" y2="140" stroke="rgba(66,70,85,0.3)" stroke-width="1"/>
     </svg>
   </div>
 
   <!-- Detection method bar chart -->
+  <%
+    const methBarW = 48, methStep = 74, methLeft = 20, methRight = 20;
+    const methVbW = methLeft + Math.max(0, charts.by_method.length - 1) * methStep + methBarW + methRight;
+  %>
   <div class="sc-card">
     <h3 style="margin-bottom:16px;">Alerts by Detection Method</h3>
-    <svg viewBox="0 0 320 160" style="width:100%;height:160px;overflow:visible;">
+    <svg viewBox="0 0 <%= methVbW %> 160" preserveAspectRatio="xMidYMid meet" style="width:100%;height:160px;display:block;">
       <% charts.by_method.forEach((d, i) => {
         const barH = Math.max(4, (d.count / maxMeth) * 130);
-        const x = 20 + i * 74;
+        const x = methLeft + i * methStep;
         const y = 140 - barH;
         const col = methColors[d.method] || '#8c90a1';
       %>
-      <rect x="<%= x %>" y="<%= y.toFixed(1) %>" width="48" height="<%= barH.toFixed(1) %>"
+      <rect x="<%= x %>" y="<%= y.toFixed(1) %>" width="<%= methBarW %>" height="<%= barH.toFixed(1) %>"
         rx="4" fill="<%= col %>" opacity="0.75"/>
-      <text x="<%= x + 24 %>" y="<%= (y - 5).toFixed(1) %>" text-anchor="middle"
+      <text x="<%= x + methBarW/2 %>" y="<%= (y - 5).toFixed(1) %>" text-anchor="middle"
         font-size="10" font-weight="700" fill="<%= col %>" font-family="Inter,sans-serif"><%= d.count %></text>
-      <text x="<%= x + 24 %>" y="154" text-anchor="middle"
+      <text x="<%= x + methBarW/2 %>" y="154" text-anchor="middle"
         font-size="9" fill="var(--text-muted)" font-family="Inter,sans-serif"><%= d.method.split(' ')[0].slice(0,6) %></text>
       <% }) %>
-      <line x1="12" y1="140" x2="310" y2="140" stroke="rgba(66,70,85,0.3)" stroke-width="1"/>
+      <line x1="<%= methLeft - 8 %>" y1="140" x2="<%= methVbW - 10 %>" y2="140" stroke="rgba(66,70,85,0.3)" stroke-width="1"/>
     </svg>
   </div>
 </div>
@@ -125,7 +133,7 @@ const sevArcs = charts.by_severity.map(d => {
     </div>
     <span class="sc-badge badge-medium"><%= charts.timeline.reduce((s,d) => s+d.count, 0) %> total</span>
   </div>
-  <svg viewBox="0 0 800 130" style="width:100%;height:130px;overflow:visible;">
+  <svg viewBox="0 0 800 130" preserveAspectRatio="none" style="width:100%;height:130px;display:block;">
     <!-- grid -->
     <% [0,1,2,3].forEach(i => {
       const y = 10 + i * 30;
