@@ -2,8 +2,11 @@
 
 A full-stack anti-fraud trading monitoring dashboard built with **Node.js + Express + SQLite + EJS**.
 
-![Dashboard](https://img.shields.io/badge/Node.js-Express-green?style=flat-square)
+**Live demo:** https://sentinel.ekuznetsov.dev — every visitor gets their own randomly-seeded sandbox.
+
+![Node.js](https://img.shields.io/badge/Node.js-Express-green?style=flat-square)
 ![Database](https://img.shields.io/badge/Database-SQLite-blue?style=flat-square)
+![Demo](https://img.shields.io/badge/Demo-per--session_sandbox-blueviolet?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
 
 ---
@@ -12,9 +15,7 @@ A full-stack anti-fraud trading monitoring dashboard built with **Node.js + Expr
 
 Sentinel Cyber is a dark-themed fraud monitoring command center for trading platforms. It provides real-time visibility into alerts, cases, detection rules, analytics, and team settings — all backed by a local SQLite database.
 
-**Design system:** Sentinel Cyber ("The Vigilant Lens") — dark background `#0c0e12`, electric blue accents `#b0c6ff`, Manrope + Inter typography.
-
----
+**Design system:** "The Vigilant Lens" — dark background `#0c0e12`, electric blue accents `#b0c6ff`, Manrope + Inter typography.
 
 ## Features
 
@@ -27,84 +28,83 @@ Sentinel Cyber is a dark-themed fraud monitoring command center for trading plat
 | **Reports** | SVG charts — severity donut, detection method bars, 24h volume chart, downloadable report list |
 | **Settings** | 5 tabs: General, Notifications, Integrations, Team, Security — all interactive |
 
----
+## Live demo — per-session sandbox
+
+The public demo on `sentinel.ekuznetsov.dev` is read-write but isolated:
+
+- The first request issues a `sentinel_sid` cookie.
+- That sid seeds a deterministic PRNG (FNV-1a → mulberry32) in `db/seed.js`, so every visitor gets a **unique** dataset — different alert volumes, different fraud types, different spike hours, different analysts assigned to cases.
+- All mutations (Acknowledge alert, Toggle rule, Open case) write to **your own** SQLite file at `db/sessions/<sid>.db` — they don't leak to other visitors.
+- The **Reset demo** button issues a fresh sid and a fresh dataset.
+- Idle session files older than 24h are deleted by an in-process sweeper.
+
+Architecture details: see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Tech Stack
 
-- **Backend:** Node.js, Express 4, EJS templating
-- **Database:** SQLite via `better-sqlite3` (synchronous, zero-config)
+- **Backend:** Node.js 22, Express 4, EJS templating
+- **Database:** SQLite via `better-sqlite3` (synchronous, zero-config, WAL mode)
 - **Frontend:** Vanilla JS, inline SVG charts, CSS custom properties
-- **UI Design:** Custom dark theme based on Stitch MCP / Google Gemini generated mockups
-
----
+- **Auth/Session:** signed-style hex cookie + per-session SQLite file
 
 ## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- npm
-
-### Install
 
 ```bash
 git clone https://github.com/kuznetsov-ai/sentinel-cyber.git
 cd sentinel-cyber
 npm install
-```
-
-### Seed the database
-
-```bash
-node db/seed.js
-```
-
-This creates `db/sentinel.db` with:
-- 120 realistic fraud alerts
-- 60 investigation cases
-- 8 detection rules (Transaction, Account, Network categories)
-- 24-hour alert timeline with spike events
-
-### Run
-
-```bash
 npm start
-# or for development with auto-reload:
-npm run dev
+# → http://localhost:3333
 ```
 
-Open **http://localhost:3333**
+The first browser hit creates `db/sessions/<sid>.db` and seeds it with a unique dataset. No manual seed step required.
 
----
+To poke at the seed schema in isolation:
+
+```bash
+node db/seed.js my-test-sid   # writes db/sentinel.db with that sid as RNG seed
+```
+
+### Configuration
+
+Environment variables (all optional):
+
+| Var | Default | Description |
+|-----|---------|-------------|
+| `PORT` | `3333` | HTTP port |
+| `SENTINEL_SESSIONS_DIR` | `db/sessions` | Where per-session sqlite files live |
+| `SENTINEL_SESSION_TTL_MS` | `86400000` (24h) | Idle TTL before a sandbox is wiped |
+| `SENTINEL_SESSION_SWEEP_MS` | `3600000` (1h) | How often the sweeper runs |
+| `SENTINEL_MAX_HANDLES` | `500` | Max open SQLite handles in memory (LRU eviction) |
 
 ## Project Structure
 
 ```
 sentinel-cyber/
-├── server.js              # Express app — routes, REST API, EJS rendering
+├── server.js                # Express app — routes, REST API, EJS rendering, sid middleware
 ├── db/
-│   ├── schema.sql         # SQLite table definitions
-│   ├── db.js              # Database singleton (better-sqlite3)
-│   └── seed.js            # Demo data generator
+│   ├── schema.sql           # SQLite table definitions
+│   ├── prng.js              # FNV-1a hash + mulberry32 (deterministic PRNG)
+│   ├── seed.js              # Per-sid demo data generator (alerts/cases/rules/timeline)
+│   ├── db.js                # Per-session sandbox factory + sweeper
+│   └── sessions/            # Runtime: <sid>.db files (gitignored)
 ├── views/
-│   ├── layout.ejs         # Shared layout: sidebar, topbar, CSS design system
-│   ├── dashboard.ejs      # KPI cards + SVG timeline chart
-│   ├── alerts.ejs         # Filterable alerts table + pagination
-│   ├── cases.ejs          # Cases table with status summary
-│   ├── rules.ejs          # Rule cards grouped by category
-│   ├── reports.ejs        # SVG analytics charts
-│   └── settings.ejs       # 5-tab settings page
+│   ├── layout.ejs           # Shared layout: sidebar, topbar, demo banner, design system
+│   ├── dashboard.ejs        # KPI cards + SVG timeline chart
+│   ├── alerts.ejs           # Filterable alerts table + pagination
+│   ├── cases.ejs            # Cases table with status summary
+│   ├── rules.ejs            # Rule cards grouped by category
+│   ├── reports.ejs          # SVG analytics charts
+│   └── settings.ejs         # 5-tab settings page
 ├── public/
-│   └── interactivity.js   # Global JS: toggles, modals, toasts, notifications, profile
+│   └── interactivity.js     # Toggles, modals, toasts, notifications, profile, demo reset
+├── docs/
+│   └── ARCHITECTURE.md      # Per-session sandbox + deployment details
 └── testMe/
-    └── ui_test_scenarios.py  # TITAN E2E test suite (15 scenarios)
+    └── ui_test_scenarios.py # TITAN E2E test suite
 ```
 
----
-
 ## REST API
-
-All mutations go through the REST API and persist to SQLite.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -114,65 +114,25 @@ All mutations go through the REST API and persist to SQLite.
 | `PATCH` | `/api/rules/:id/toggle` | Toggle rule active/inactive |
 | `DELETE` | `/api/rules/:id` | Delete a rule |
 | `POST` | `/api/rules` | Create a new rule |
+| `POST` | `/api/demo/reset` | Wipe this session's sandbox, issue a new sid + dataset |
+| `GET` | `/api/demo/info` | `{sid, ttl_hours}` |
 
----
+All mutating endpoints scope to the caller's `sentinel_sid` cookie — there is no global state.
 
 ## Database Schema
 
 ```sql
--- alerts: fraud detection events
-alerts (id, alert_code, timestamp, account_uuid, account_name,
-        alert_type, severity, details, status)
-
--- cases: investigation workflow
-cases  (id, case_code, created_at, account_uuid, account_email,
-        risk_level, detection_method, assigned_to, last_updated, status)
-
--- rules: detection rule configuration
-rules  (id, name, type, category, priority, active, trigger_count, last_modified)
-
--- timeline: 24-hour hourly alert volumes
+alerts   (id, alert_code, timestamp, account_uuid, account_name,
+          alert_type, severity, details, status)
+cases    (id, case_code, created_at, account_uuid, account_email,
+          risk_level, detection_method, assigned_to, last_updated, status)
+rules    (id, name, type, category, priority, active, trigger_count, last_modified)
 timeline (id, hour, count, is_spike, spike_label)
 ```
 
----
+## Deployment (sentinel.ekuznetsov.dev)
 
-## E2E Tests
-
-Tests use [TITAN](https://github.com/kuznetsov-ai) — a Playwright-based E2E framework.
-
-```bash
-cd /path/to/titan
-.venv/bin/python3 cli.py test \
-  --system config/systems/sentinel-cyber.yaml \
-  --scenario sentinel-cyber \
-  --headed
-```
-
-**Results:** 15/15 PASS — covers all pages, all buttons, all modals, all table actions.
-
----
-
-## Interactive Elements
-
-Every UI element is functional:
-
-- **Toggles** — persist state via `PATCH /api/rules/:id/toggle`
-- **Alert actions** — View (modal with details), Acknowledge (status change), Dismiss (DELETE)
-- **Cases** — Open Case modal with Take Ownership / Escalate actions
-- **Rules Engine** — Create, Edit, Duplicate, Delete rules
-- **Notifications bell** — Dropdown with live alert feed
-- **Profile** — Dropdown with Profile settings, Preferences, API Keys modals
-- **Settings tabs** — General, Notifications, Integrations, Team, Security (all with content)
-- **Form saves** — Toast confirmations
-
----
-
-## Screenshots
-
-> Dashboard with 120 alerts, SVG timeline chart, KPI cards
-
----
+Hosted on Silver Server (Hetzner) behind Caddy, served by a `sentinel` system user via `systemd`. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full path.
 
 ## License
 

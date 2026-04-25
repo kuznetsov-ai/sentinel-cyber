@@ -598,6 +598,24 @@
     initFormSaves();
     initNotifications();
     initProfile();
+    initDemoReset();
+  }
+
+  function initDemoReset() {
+    const btn = document.getElementById('demo-reset');
+    if (!btn) return;
+    btn.addEventListener('click', async function () {
+      if (!confirm('Reset demo data? You will get a fresh randomly-seeded sandbox.')) return;
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/demo/reset', { method: 'POST' });
+        if (!res.ok) throw new Error('Reset failed');
+        window.location.href = '/';
+      } catch (err) {
+        btn.disabled = false;
+        alert('Could not reset demo: ' + err.message);
+      }
+    });
   }
 
   if (document.readyState === 'loading') {

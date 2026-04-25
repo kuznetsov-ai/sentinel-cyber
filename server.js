@@ -1,18 +1,55 @@
 const express = require('express');
 const path    = require('path');
 const ejs     = require('ejs');
-const db      = require('./db/db');
+const crypto  = require('crypto');
+
+const { getSessionDb, resetSessionDb, SESSION_TTL_MS } = require('./db/db');
 
 const app  = express();
-const PORT = 3333;
+const PORT = parseInt(process.env.PORT || '3333', 10);
 const PER_PAGE = 10;
+const COOKIE_NAME = 'sentinel_sid';
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ── Per-session sandbox middleware ───────────────────────────
+function parseCookies(req) {
+  const out = {};
+  const header = req.headers.cookie;
+  if (!header) return out;
+  for (const part of header.split(';')) {
+    const idx = part.indexOf('=');
+    if (idx < 0) continue;
+    const k = part.slice(0, idx).trim();
+    const v = part.slice(idx + 1).trim();
+    if (k) out[k] = decodeURIComponent(v);
+  }
+  return out;
+}
+
+function newSid() {
+  return crypto.randomBytes(8).toString('hex');
+}
+
+app.use((req, res, next) => {
+  const cookies = parseCookies(req);
+  let sid = cookies[COOKIE_NAME];
+  if (!sid || !/^[a-f0-9]{6,64}$/.test(sid)) {
+    sid = newSid();
+    res.setHeader(
+      'Set-Cookie',
+      `${COOKIE_NAME}=${sid}; Path=/; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}; SameSite=Lax; HttpOnly`
+    );
+  }
+  req.sid = sid;
+  req.db  = getSessionDb(sid);
+  next();
+});
+
 // ── EJS render helper (injects body into layout) ─────────────
-async function render(res, page, title, bodyData) {
+async function render(req, res, page, title, bodyData) {
   try {
     const body = await ejs.renderFile(
       path.join(__dirname, 'views', page + '.ejs'),
@@ -20,7 +57,13 @@ async function render(res, page, title, bodyData) {
     );
     const html = await ejs.renderFile(
       path.join(__dirname, 'views', 'layout.ejs'),
-      { title, page: bodyData.page || '/', body }
+      {
+        title,
+        page: bodyData.page || '/',
+        body,
+        sid_short: req.sid.slice(0, 6),
+        ttl_h: Math.round(SESSION_TTL_MS / 3600000),
+      }
     );
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.send(html);
@@ -32,6 +75,7 @@ async function render(res, page, title, bodyData) {
 
 // ── DASHBOARD ────────────────────────────────────────────────
 app.get('/', (req, res) => {
+  const db = req.db;
   const totalAlerts  = db.prepare('SELECT COUNT(*) as n FROM alerts').get().n;
   const newAlerts    = db.prepare("SELECT COUNT(*) as n FROM alerts WHERE status='New'").get().n;
   const activeCases  = db.prepare("SELECT COUNT(*) as n FROM cases WHERE status IN ('Open','Under Review','Escalated')").get().n;
@@ -39,14 +83,19 @@ app.get('/', (req, res) => {
   const avgRisk      = db.prepare("SELECT ROUND(AVG(CASE severity WHEN 'Critical' THEN 90 WHEN 'High' THEN 65 WHEN 'Medium' THEN 35 ELSE 12 END)) as n FROM alerts").get().n;
   const timeline     = db.prepare('SELECT * FROM timeline ORDER BY hour').all();
 
-  render(res, 'dashboard', 'Dashboard', {
+  render(req, res, 'dashboard', 'Dashboard', {
     page: '/',
-    stats: { total_alerts: totalAlerts, new_alerts: newAlerts, active_cases: activeCases, blocked_today: blockedToday, avg_risk_score: avgRisk, timeline }
+    stats: {
+      total_alerts: totalAlerts, new_alerts: newAlerts,
+      active_cases: activeCases, blocked_today: blockedToday,
+      avg_risk_score: avgRisk, timeline,
+    },
   });
 });
 
 // ── ALERTS ───────────────────────────────────────────────────
 app.get('/alerts', (req, res) => {
+  const db = req.db;
   const { severity = '', status = '', type = '', p = '1' } = req.query;
   const pageNum = Math.max(1, parseInt(p) || 1);
   const offset  = (pageNum - 1) * PER_PAGE;
@@ -62,15 +111,16 @@ app.get('/alerts', (req, res) => {
   const alerts   = db.prepare(`SELECT * FROM alerts WHERE ${whereStr} ORDER BY id DESC LIMIT ? OFFSET ?`).all(...params, PER_PAGE, offset);
   const types    = db.prepare('SELECT DISTINCT alert_type FROM alerts ORDER BY alert_type').all().map(r => r.alert_type);
 
-  render(res, 'alerts', 'Alerts', {
+  render(req, res, 'alerts', 'Alerts', {
     page: '/alerts', alerts, total,
     pageNum, pages: Math.ceil(total / PER_PAGE),
-    filters: { severity, status, type }, types
+    filters: { severity, status, type }, types,
   });
 });
 
 // ── CASES ────────────────────────────────────────────────────
 app.get('/cases', (req, res) => {
+  const db = req.db;
   const { risk = '', status = '', p = '1' } = req.query;
   const pageNum = Math.max(1, parseInt(p) || 1);
   const offset  = (pageNum - 1) * PER_PAGE;
@@ -90,38 +140,40 @@ app.get('/cases', (req, res) => {
     closed:       db.prepare("SELECT COUNT(*) as n FROM cases WHERE status='Closed'").get().n,
   };
 
-  render(res, 'cases', 'Cases', {
+  render(req, res, 'cases', 'Cases', {
     page: '/cases', cases, total,
     pageNum, pages: Math.ceil(total / PER_PAGE),
-    filters: { risk, status }, summary
+    filters: { risk, status }, summary,
   });
 });
 
 // ── RULES ────────────────────────────────────────────────────
 app.get('/rules', (req, res) => {
+  const db = req.db;
   const rules = db.prepare('SELECT * FROM rules ORDER BY category, priority DESC').all();
   const stats = {
-    total:          rules.length,
-    active:         rules.filter(r => r.active).length,
-    disabled:       rules.filter(r => !r.active).length,
+    total:           rules.length,
+    active:          rules.filter(r => r.active).length,
+    disabled:        rules.filter(r => !r.active).length,
     triggered_today: rules.reduce((s, r) => s + r.trigger_count, 0),
   };
-  render(res, 'rules', 'Rules Engine', { page: '/rules', rules, stats });
+  render(req, res, 'rules', 'Rules Engine', { page: '/rules', rules, stats });
 });
 
 // ── REPORTS ──────────────────────────────────────────────────
 app.get('/reports', (req, res) => {
+  const db = req.db;
   const bySeverity = db.prepare("SELECT severity, COUNT(*) as count FROM alerts GROUP BY severity ORDER BY CASE severity WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 WHEN 'Medium' THEN 3 ELSE 4 END").all();
   const byMethod   = db.prepare('SELECT detection_method as method, COUNT(*) as count FROM cases GROUP BY detection_method ORDER BY count DESC').all();
   const timeline   = db.prepare('SELECT hour, count FROM timeline ORDER BY hour').all();
-  render(res, 'reports', 'Reports', { page: '/reports', charts: { by_severity: bySeverity, by_method: byMethod, timeline } });
+  render(req, res, 'reports', 'Reports', { page: '/reports', charts: { by_severity: bySeverity, by_method: byMethod, timeline } });
 });
 
 // ── SETTINGS ─────────────────────────────────────────────────
 app.get('/settings', (req, res) => {
-  render(res, 'settings', 'Settings', {
+  render(req, res, 'settings', 'Settings', {
     page: '/settings',
-    settings: { dashboard_name: 'TAF Anti-Fraud Monitor', timezone: 'Europe/Nicosia (UTC+3)', retention_days: 90 }
+    settings: { dashboard_name: 'TAF Anti-Fraud Monitor', timezone: 'Europe/Nicosia (UTC+3)', retention_days: 90 },
   });
 });
 
@@ -129,53 +181,66 @@ app.get('/settings', (req, res) => {
 // REST API (used by interactivity.js for live mutations)
 // ─────────────────────────────────────────────────────────────
 
-// PATCH /api/alerts/:id  { status: 'Acknowledged' }
 app.patch('/api/alerts/:id', (req, res) => {
   const { status } = req.body;
-  if (!['Acknowledged','Resolved','New'].includes(status)) return res.status(400).json({ error: 'Invalid status' });
-  db.prepare('UPDATE alerts SET status=? WHERE id=?').run(status, req.params.id);
+  if (!['Acknowledged', 'Resolved', 'New'].includes(status)) return res.status(400).json({ error: 'Invalid status' });
+  req.db.prepare('UPDATE alerts SET status=? WHERE id=?').run(status, req.params.id);
   res.json({ ok: true });
 });
 
-// DELETE /api/alerts/:id
 app.delete('/api/alerts/:id', (req, res) => {
-  db.prepare('DELETE FROM alerts WHERE id=?').run(req.params.id);
+  req.db.prepare('DELETE FROM alerts WHERE id=?').run(req.params.id);
   res.json({ ok: true });
 });
 
-// PATCH /api/cases/:id  { status: '...' }
 app.patch('/api/cases/:id', (req, res) => {
   const { status } = req.body;
-  if (!['Open','Under Review','Escalated','Closed'].includes(status)) return res.status(400).json({ error: 'Invalid status' });
-  db.prepare('UPDATE cases SET status=? WHERE id=?').run(status, req.params.id);
+  if (!['Open', 'Under Review', 'Escalated', 'Closed'].includes(status)) return res.status(400).json({ error: 'Invalid status' });
+  req.db.prepare('UPDATE cases SET status=? WHERE id=?').run(status, req.params.id);
   res.json({ ok: true });
 });
 
-// PATCH /api/rules/:id/toggle
 app.patch('/api/rules/:id/toggle', (req, res) => {
-  const rule = db.prepare('SELECT active FROM rules WHERE id=?').get(req.params.id);
+  const rule = req.db.prepare('SELECT active FROM rules WHERE id=?').get(req.params.id);
   if (!rule) return res.status(404).json({ error: 'Not found' });
-  db.prepare('UPDATE rules SET active=? WHERE id=?').run(rule.active ? 0 : 1, req.params.id);
+  req.db.prepare('UPDATE rules SET active=? WHERE id=?').run(rule.active ? 0 : 1, req.params.id);
   res.json({ ok: true, active: !rule.active });
 });
 
-// DELETE /api/rules/:id
 app.delete('/api/rules/:id', (req, res) => {
-  db.prepare('DELETE FROM rules WHERE id=?').run(req.params.id);
+  req.db.prepare('DELETE FROM rules WHERE id=?').run(req.params.id);
   res.json({ ok: true });
 });
 
-// POST /api/rules
 app.post('/api/rules', (req, res) => {
   const { name, type, category, priority } = req.body;
-  const now = new Date().toISOString().replace('T',' ').substring(0,19);
-  const r = db.prepare('INSERT INTO rules (name,type,category,priority,active,trigger_count,last_modified) VALUES (?,?,?,?,1,0,?)').run(name, type, category||'Transaction', priority||5, now);
+  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  const r = req.db.prepare(
+    'INSERT INTO rules (name,type,category,priority,active,trigger_count,last_modified) VALUES (?,?,?,?,1,0,?)'
+  ).run(name, type, category || 'Transaction', priority || 5, now);
   res.json({ ok: true, id: r.lastInsertRowid });
+});
+
+// Demo controls
+app.post('/api/demo/reset', (req, res) => {
+  resetSessionDb(req.sid);
+  const next = newSid();
+  res.setHeader(
+    'Set-Cookie',
+    `${COOKIE_NAME}=${next}; Path=/; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}; SameSite=Lax; HttpOnly`
+  );
+  res.json({ ok: true, sid: next });
+});
+
+app.get('/api/demo/info', (req, res) => {
+  res.json({
+    sid: req.sid,
+    ttl_hours: Math.round(SESSION_TTL_MS / 3600000),
+  });
 });
 
 // ─────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  const total = db.prepare('SELECT COUNT(*) as n FROM alerts').get().n;
   console.log(`\n  🛡  Sentinel Cyber  →  http://localhost:${PORT}`);
-  console.log(`  📦  SQLite          →  db/sentinel.db  (${total} alerts)\n`);
+  console.log(`  📦  per-session sandbox at db/sessions/, TTL ${Math.round(SESSION_TTL_MS / 3600000)}h\n`);
 });
