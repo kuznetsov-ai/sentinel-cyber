@@ -571,6 +571,21 @@ class SentinelCyberScenarios(BaseScenario):
                     # 4px tolerance — sub-pixel rounding plus scrollbar gutter
                     if sw > iw + 4:
                         failures.append(f"{vp_name}({w}x{h}) {route}: scrollW={sw} > innerW={iw}")
+                    # body { overflow-x: hidden } can mask a real layout
+                    # bug — the page reports no scroll, but cards inside
+                    # actually extend past the viewport's right edge and
+                    # get clipped (the user reported this for the Recent
+                    # Alerts table on phones). Walk every .sc-card and
+                    # assert its right edge is inside the viewport.
+                    clipped = await self.page.evaluate(
+                        "Array.from(document.querySelectorAll('.sc-card'))"
+                        ".map(el => ({right: el.getBoundingClientRect().right, "
+                        "tag: el.querySelector('h3')?.textContent || el.className}))"
+                        ".filter(o => o.right > window.innerWidth + 4)"
+                    )
+                    if clipped:
+                        sample = ", ".join(f"'{c['tag']}'@{int(c['right'])}px" for c in clipped[:3])
+                        failures.append(f"{vp_name}({w}x{h}) {route}: card(s) clipped right edge — {sample}")
                     await self._screenshot(f"S16_{vp_name}_{route.strip('/').replace('/', '_') or 'dashboard'}")
             screenshot = await self._screenshot("S16_responsive_summary")
             if failures:

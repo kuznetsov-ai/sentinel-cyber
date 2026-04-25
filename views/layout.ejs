@@ -296,6 +296,15 @@
     .settings-panel { max-width: 100% !important; }
     /* Page-header right-side action cluster wraps */
     .sc-page-header > div:last-child { flex-wrap: wrap; }
+    /* Cards inside CSS grids are flex/grid items — by default they get
+       `min-width: auto` (= min-content), so a wide table or pre-element
+       inside a card stretches the card past the viewport. Force shrinking. */
+    .sc-card,
+    .sc-kpi,
+    .sc-table-wrap { min-width: 0; max-width: 100%; }
+    .sc-table-wrap { overflow-x: auto; }
+    /* Optional column hiding for tables that mark non-essential columns */
+    .col-hide-mobile { display: none !important; }
   }
   /* On non-mobile, keep desktop behaviour: sidebar always visible, no backdrop */
   @media (min-width: 861px) {
