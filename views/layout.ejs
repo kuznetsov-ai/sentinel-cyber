@@ -25,7 +25,10 @@
     --text:        #e2e2e8;
     --text-muted:  #8c90a1;
     --sidebar-w:   256px;
+    --topbar-h:    56px;
   }
+
+  body.sidebar-collapsed { --sidebar-w: 64px; }
 
   html, body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; }
 
@@ -37,8 +40,9 @@
     display: flex; flex-direction: column;
     padding: 28px 0; z-index: 60;
     box-shadow: 4px 0 40px rgba(176,198,255,0.03);
+    transition: width 0.18s ease, transform 0.22s ease;
   }
-  .sc-logo { padding: 0 24px 32px; }
+  .sc-logo { padding: 0 24px 32px; transition: padding 0.18s; }
   .sc-logo h1 { font-family: 'Manrope',sans-serif; font-size: 17px; font-weight: 800; color: #e2e2e8; letter-spacing: -0.3px; }
   .sc-logo p  { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--primary); opacity: 0.75; margin-top: 3px; }
 
@@ -210,6 +214,62 @@
   .sc-section-title { font-family: 'Manrope',sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 12px; margin-top: 24px; padding-left: 4px; }
   .sc-empty { text-align: center; padding: 48px; color: var(--text-muted); font-size: 13px; }
 
+  /* ── SIDEBAR TOGGLE / BURGER ── */
+  #sidebar-toggle {
+    background: none; border: none; cursor: pointer; color: var(--text-muted);
+    padding: 7px; border-radius: 7px; transition: all 0.15s;
+    display: flex; align-items: center; margin-right: 6px;
+  }
+  #sidebar-toggle:hover { background: rgba(176,198,255,0.07); color: var(--text); }
+  #sidebar-toggle .material-symbols-outlined { font-size: 22px; }
+  #sidebar-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+    z-index: 55; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  body.sidebar-open #sidebar-backdrop { opacity: 1; pointer-events: auto; }
+
+  /* ── DESKTOP COLLAPSED STATE ── */
+  .sc-logo__mark { display: none; }
+  body.sidebar-collapsed .sc-logo { padding: 0 0 20px; text-align: center; }
+  body.sidebar-collapsed .sc-logo h1,
+  body.sidebar-collapsed .sc-logo p { display: none; }
+  body.sidebar-collapsed .sc-logo__mark { display: inline-block; font-size: 26px; color: var(--primary); }
+  body.sidebar-collapsed .sc-nav .nav-label,
+  body.sidebar-collapsed .sc-user div:not(.avatar) { display: none; }
+  body.sidebar-collapsed .sc-nav { padding: 0 8px; }
+  body.sidebar-collapsed .sc-nav a { justify-content: center; padding: 11px 0; gap: 0; }
+  body.sidebar-collapsed .sc-user { justify-content: center; padding: 16px 0 0; }
+
+  /* ── MOBILE LAYOUT ── */
+  @media (max-width: 860px) {
+    :root { --sidebar-w: 240px; }
+    /* Drawer mode — sidebar slides in from the left */
+    #sidebar { transform: translateX(-100%); width: var(--sidebar-w); box-shadow: 0 0 60px rgba(0,0,0,0.7); }
+    body.sidebar-open #sidebar { transform: translateX(0); }
+    /* Topbar takes full width — sidebar no longer reserves space */
+    #topbar { left: 0; padding: 0 14px; }
+    #main { margin-left: 0; }
+    .sc-page { padding: 18px 16px; }
+    /* Hide the desktop search field; the burger is the priority */
+    .sc-search { display: none; }
+    /* KPI grid: 2 columns on mobile so cards stay readable */
+    .sc-kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+    .sc-kpi .kpi-val { font-size: 22px; }
+    /* Page header stacks vertically */
+    .sc-page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .sc-page-header h2 { font-size: 22px; }
+    /* Filter bar wraps */
+    .sc-filters { width: 100%; }
+    .sc-filters .sc-select { flex: 1 1 calc(50% - 5px); min-width: 0; }
+    /* Modals get tighter side padding (handled by their own styles, but enforce) */
+  }
+  /* On non-mobile, keep desktop behaviour: sidebar always visible, no backdrop */
+  @media (min-width: 861px) {
+    body.sidebar-open #sidebar-backdrop { opacity: 0; pointer-events: none; }
+  }
+
   /* ── DEMO BANNER ── */
   .sc-demo-banner {
     display: flex; align-items: center; gap: 14px;
@@ -234,6 +294,7 @@
 <!-- SIDEBAR -->
 <nav id="sidebar">
   <div class="sc-logo">
+    <span class="sc-logo__mark material-symbols-outlined" aria-hidden="true">shield_lock</span>
     <h1>Vigilant Lens</h1>
     <p>Fraud Command</p>
   </div>
@@ -246,15 +307,15 @@
       { href: '/reports',  icon: 'bar_chart',        label: 'Reports'      },
     ]; %>
     <% for (const item of navItems) { %>
-    <a href="<%= item.href %>" class="<%= page === item.href ? 'active' : '' %>">
+    <a href="<%= item.href %>" class="<%= page === item.href ? 'active' : '' %>" title="<%= item.label %>">
       <span class="material-symbols-outlined"><%= item.icon %></span>
-      <%= item.label %>
+      <span class="nav-label"><%= item.label %></span>
     </a>
     <% } %>
     <div class="nav-sep"></div>
-    <a href="/settings" class="<%= page === '/settings' ? 'active' : '' %>">
+    <a href="/settings" class="<%= page === '/settings' ? 'active' : '' %>" title="Settings">
       <span class="material-symbols-outlined">settings</span>
-      Settings
+      <span class="nav-label">Settings</span>
     </a>
   </div>
   <div class="sc-user">
@@ -268,9 +329,14 @@
 
 <!-- TOPBAR -->
 <header id="topbar">
-  <div class="sc-search">
-    <span class="material-symbols-outlined">search</span>
-    <input type="text" placeholder="Search accounts, alerts, cases…">
+  <div style="display:flex;align-items:center;flex:1;min-width:0;">
+    <button id="sidebar-toggle" type="button" aria-label="Toggle sidebar">
+      <span class="material-symbols-outlined">menu</span>
+    </button>
+    <div class="sc-search">
+      <span class="material-symbols-outlined">search</span>
+      <input type="text" placeholder="Search accounts, alerts, cases…">
+    </div>
   </div>
   <div class="sc-topbar-right">
     <button class="sc-icon-btn" id="notif-btn" title="Notifications">
@@ -282,6 +348,9 @@
     </button>
   </div>
 </header>
+
+<!-- MOBILE BACKDROP -->
+<div id="sidebar-backdrop" aria-hidden="true"></div>
 
 <!-- MAIN -->
 <div id="main">

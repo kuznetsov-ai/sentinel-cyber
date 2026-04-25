@@ -592,6 +592,7 @@
     fixSidebarLinks();
     initSettingsTabs();
     initToggles();
+    initSidebarToggle();
     initAlertsTable();
     initCasesTable();
     initRulesEngine();
@@ -599,6 +600,57 @@
     initNotifications();
     initProfile();
     initDemoReset();
+  }
+
+  function initSidebarToggle() {
+    const btn = document.getElementById('sidebar-toggle');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (!btn) return;
+
+    const MOBILE_QUERY = '(max-width: 860px)';
+    const STORAGE_KEY = 'sentinel.sidebar.collapsed';
+    const isMobile = () => window.matchMedia(MOBILE_QUERY).matches;
+
+    // Apply persisted desktop state on load
+    if (!isMobile() && localStorage.getItem(STORAGE_KEY) === '1') {
+      document.body.classList.add('sidebar-collapsed');
+    }
+
+    btn.addEventListener('click', function () {
+      if (isMobile()) {
+        document.body.classList.toggle('sidebar-open');
+      } else {
+        const collapsed = document.body.classList.toggle('sidebar-collapsed');
+        try { localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0'); } catch (_) {}
+      }
+    });
+
+    if (backdrop) {
+      backdrop.addEventListener('click', function () {
+        document.body.classList.remove('sidebar-open');
+      });
+    }
+
+    // Close mobile drawer when a nav link is tapped
+    document.querySelectorAll('#sidebar a').forEach(function (a) {
+      a.addEventListener('click', function () {
+        if (isMobile()) document.body.classList.remove('sidebar-open');
+      });
+    });
+
+    // If the viewport crosses the breakpoint, drop the irrelevant class
+    window.matchMedia(MOBILE_QUERY).addEventListener('change', function (e) {
+      if (e.matches) {
+        // entering mobile — collapsed-desktop state is irrelevant
+        document.body.classList.remove('sidebar-collapsed');
+      } else {
+        // back to desktop — drawer-open state is irrelevant
+        document.body.classList.remove('sidebar-open');
+        if (localStorage.getItem(STORAGE_KEY) === '1') {
+          document.body.classList.add('sidebar-collapsed');
+        }
+      }
+    });
   }
 
   function initDemoReset() {
