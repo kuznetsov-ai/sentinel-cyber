@@ -132,11 +132,20 @@ class SentinelCyberScenarios(BaseScenario):
             await self.page.goto(self.base_url + "/alerts")
             await self.page.wait_for_load_state("networkidle", timeout=8000)
             await asyncio.sleep(0.8)
+            # Defensive: a leftover modal/toast from the previous scenario
+            # would cover the Acknowledge button and cause Playwright's
+            # actionability check to time out (30s).
+            for _ in range(2):
+                await self.page.keyboard.press("Escape")
+                await asyncio.sleep(0.15)
+            overlay = self.page.locator("#sc-modal-overlay")
+            if await overlay.count() > 0:
+                await overlay.evaluate("el => el.remove()")
 
             first_row = self.page.locator("tbody tr").first
             # Second button = check_circle (acknowledge)
             ack_btn = first_row.locator("button").nth(1)
-            await ack_btn.click()
+            await ack_btn.click(timeout=5000)
             await asyncio.sleep(0.5)
 
             screenshot = await self._screenshot("S05_acknowledge")
