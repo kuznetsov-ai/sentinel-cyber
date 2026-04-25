@@ -9,3 +9,4 @@ db/sentinel.db-shm
 .env.*
 .DS_Store
 storage_layout/
+testMe/__pycache__/

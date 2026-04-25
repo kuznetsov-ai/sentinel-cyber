@@ -33,15 +33,20 @@ function newSid() {
   return crypto.randomBytes(8).toString('hex');
 }
 
+const COOKIE_SECURE = process.env.NODE_ENV === 'production'
+  || /^(1|true|yes)$/i.test(process.env.SENTINEL_COOKIE_SECURE || '');
+
+function cookieFlags() {
+  const ttl = Math.floor(SESSION_TTL_MS / 1000);
+  return `Path=/; Max-Age=${ttl}; SameSite=Lax; HttpOnly${COOKIE_SECURE ? '; Secure' : ''}`;
+}
+
 app.use((req, res, next) => {
   const cookies = parseCookies(req);
   let sid = cookies[COOKIE_NAME];
   if (!sid || !/^[a-f0-9]{6,64}$/.test(sid)) {
     sid = newSid();
-    res.setHeader(
-      'Set-Cookie',
-      `${COOKIE_NAME}=${sid}; Path=/; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}; SameSite=Lax; HttpOnly`
-    );
+    res.setHeader('Set-Cookie', `${COOKIE_NAME}=${sid}; ${cookieFlags()}`);
   }
   req.sid = sid;
   req.db  = getSessionDb(sid);
@@ -225,10 +230,7 @@ app.post('/api/rules', (req, res) => {
 app.post('/api/demo/reset', (req, res) => {
   resetSessionDb(req.sid);
   const next = newSid();
-  res.setHeader(
-    'Set-Cookie',
-    `${COOKIE_NAME}=${next}; Path=/; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}; SameSite=Lax; HttpOnly`
-  );
+  res.setHeader('Set-Cookie', `${COOKIE_NAME}=${next}; ${cookieFlags()}`);
   res.json({ ok: true, sid: next });
 });
 

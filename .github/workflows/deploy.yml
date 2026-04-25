@@ -1,0 +1,66 @@
+name: Deploy to Silver Server
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-sentinel
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        env:
+          DEPLOY_KEY: ${{ secrets.SENTINEL_DEPLOY_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H 89.167.108.210 >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Rsync to server
+        run: |
+          rsync -az --delete \
+            --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='db/sentinel.db' \
+            --exclude='db/sentinel.db-shm' \
+            --exclude='db/sentinel.db-wal' \
+            --exclude='db/sessions' \
+            --exclude='.DS_Store' \
+            -e 'ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no' \
+            ./ sentinel-deploy@89.167.108.210:/opt/sentinel-cyber/
+
+      - name: Install deps + restart service
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no \
+            sentinel-deploy@89.167.108.210 '
+              set -e
+              cd /opt/sentinel-cyber
+              npm ci --omit=dev
+              sudo /usr/bin/chown -R sentinel:sentinel /opt/sentinel-cyber
+              sudo /usr/bin/systemctl restart sentinel-cyber
+            '
+
+      - name: Smoke test
+        run: |
+          for i in 1 2 3 4 5; do
+            sleep 3
+            code=$(curl -s -o /dev/null -w "%{http_code}" https://sentinel.ekuznetsov.dev/)
+            if [ "$code" = "200" ]; then
+              echo "Smoke test passed (HTTP $code)"
+              exit 0
+            fi
+            echo "Attempt $i: got HTTP $code, retrying..."
+          done
+          echo "Smoke test failed"
+          exit 1

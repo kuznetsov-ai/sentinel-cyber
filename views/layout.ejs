@@ -265,6 +265,27 @@
     .sc-filters .sc-select { flex: 1 1 calc(50% - 5px); min-width: 0; }
     /* Modals get tighter side padding (handled by their own styles, but enforce) */
   }
+  /* Mobile: collapse all inline 2-col / 3-col grids into a single column.
+     Many EJS pages set grid-template-columns inline (e.g. "1fr 280px",
+     "200px 1fr", "260px 1fr 1fr"); on a 393px phone those side-columns
+     overflow. Targeting the inline attribute beats inline specificity
+     without requiring per-page rewrites. */
+  @media (max-width: 860px) {
+    [style*="grid-template-columns"] {
+      grid-template-columns: 1fr !important;
+    }
+    /* Tab bars laid out as flex rows can overflow — let them scroll x */
+    #settings-tabs {
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+    #settings-tabs button { flex-shrink: 0; }
+    /* Settings panels — relax the 720px max-width on phones */
+    .settings-panel { max-width: 100% !important; }
+    /* Page-header right-side action cluster wraps */
+    .sc-page-header > div:last-child { flex-wrap: wrap; }
+  }
   /* On non-mobile, keep desktop behaviour: sidebar always visible, no backdrop */
   @media (min-width: 861px) {
     body.sidebar-open #sidebar-backdrop { opacity: 0; pointer-events: none; }
