@@ -610,11 +610,27 @@
     const MOBILE_QUERY = '(max-width: 860px)';
     const STORAGE_KEY = 'sentinel.sidebar.collapsed';
     const isMobile = () => window.matchMedia(MOBILE_QUERY).matches;
+    const iconEl = btn.querySelector('.material-symbols-outlined');
+
+    function updateIcon() {
+      if (!iconEl) return;
+      if (isMobile()) {
+        iconEl.textContent = 'menu';
+        btn.setAttribute('aria-label', 'Open menu');
+      } else if (document.body.classList.contains('sidebar-collapsed')) {
+        iconEl.textContent = 'chevron_right';   // → expand
+        btn.setAttribute('aria-label', 'Expand sidebar');
+      } else {
+        iconEl.textContent = 'chevron_left';    // ← collapse
+        btn.setAttribute('aria-label', 'Collapse sidebar');
+      }
+    }
 
     // Apply persisted desktop state on load
     if (!isMobile() && localStorage.getItem(STORAGE_KEY) === '1') {
       document.body.classList.add('sidebar-collapsed');
     }
+    updateIcon();
 
     btn.addEventListener('click', function () {
       if (isMobile()) {
@@ -622,6 +638,7 @@
       } else {
         const collapsed = document.body.classList.toggle('sidebar-collapsed');
         try { localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0'); } catch (_) {}
+        updateIcon();
       }
     });
 
@@ -650,6 +667,7 @@
           document.body.classList.add('sidebar-collapsed');
         }
       }
+      updateIcon();
     });
   }
 
