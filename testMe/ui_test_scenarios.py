@@ -195,7 +195,7 @@ class SentinelCyberScenarios(BaseScenario):
             # spawns 40+ cases, but the request might still be in flight on
             # the first hit of a session).
             try:
-                await self.page.locator("button:has-text('Open Case')").first.wait_for(
+                await self.page.locator(":is(a, button):has-text('Open Case')").first.wait_for(
                     state="attached", timeout=8000
                 )
             except Exception:
@@ -209,7 +209,7 @@ class SentinelCyberScenarios(BaseScenario):
                 "Risk filter":     await self.page.locator("select[name='risk']").count() == 1,
                 "Status filter":   await self.page.locator("select[name='status']").count() == 1,
                 "Table rows":      row_count >= 1,
-                "Open Case btn":   await self.page.locator("button:has-text('Open Case')").count() > 0,
+                "Open Case btn":   await self.page.locator(":is(a, button):has-text('Open Case')").count() > 0,
             }
             screenshot = await self._screenshot("S07_cases")
             failed = [k for k, v in checks.items() if not v]
@@ -220,26 +220,34 @@ class SentinelCyberScenarios(BaseScenario):
             # Open Case button is inside table rows — scroll first row into
             # view (above-the-fold the table sits below the KPI summary)
             try:
-                await self.page.locator("button:has-text('Open Case')").first.scroll_into_view_if_needed(timeout=3000)
-                await self.page.locator("button:has-text('Open Case')").first.click(timeout=5000)
+                await self.page.locator(":is(a, button):has-text('Open Case')").first.scroll_into_view_if_needed(timeout=3000)
+                await self.page.locator(":is(a, button):has-text('Open Case')").first.click(timeout=5000)
             except Exception as e:
                 self._record("S07_cases_modal", "WARN",
                              f"Cases page renders ({row_count} rows) but Open Case click failed: {e}",
                              await self._screenshot("S07_cases_modal"), start)
                 return self.results[-1]
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.6)
+            try:
+                await self.page.wait_for_load_state("networkidle", timeout=5000)
+            except Exception:
+                pass
 
             modal = self.page.locator("#sc-modal-overlay")
             modal_visible = await modal.count() > 0
+            url_changed = "/cases/" in self.page.url and self.page.url.rstrip("/") != self.base_url + "/cases"
             screenshot = await self._screenshot("S07_cases_modal")
 
             if modal_visible:
                 self._record("S07_cases_modal", "PASS",
                              f"Case modal opened ({row_count} table rows visible)", screenshot, start)
                 await self.page.keyboard.press("Escape")
+            elif url_changed:
+                self._record("S07_cases_modal", "PASS",
+                             f"Open Case navigates to {self.page.url} ({row_count} rows)", screenshot, start)
             else:
                 self._record("S07_cases_modal", "WARN",
-                             f"Open Case clicked but modal not wired ({row_count} rows)",
+                             f"Open Case clicked but neither modal nor navigation ({row_count} rows)",
                              screenshot, start)
         except Exception as e:
             self._record("S07_cases_modal", "FAIL", str(e), await self._screenshot("S07_err"), start)
