@@ -50,13 +50,17 @@ jobs:
             ./ sentinel-deploy@89.167.108.210:/opt/sentinel-cyber/
 
       - name: Install deps + restart service
+        # No `chown` step: /opt/sentinel-cyber is owned by sentinel-deploy:sentinel
+        # with setgid+g+rwX, so the runtime user `sentinel` reads/writes through
+        # group membership without needing to own the files. Re-chowning to
+        # sentinel:sentinel would strip rsync's ability to set mtimes on the
+        # next deploy.
         run: |
           ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no \
             sentinel-deploy@89.167.108.210 '
               set -e
               cd /opt/sentinel-cyber
               npm ci --omit=dev
-              sudo /usr/bin/chown -R sentinel:sentinel /opt/sentinel-cyber
               sudo /usr/bin/systemctl restart sentinel-cyber
             '
 
