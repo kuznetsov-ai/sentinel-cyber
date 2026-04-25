@@ -17,6 +17,8 @@ Sentinel Cyber is a dark-themed fraud monitoring command center for trading plat
 
 **Design system:** "The Vigilant Lens" — dark background `#0c0e12`, electric blue accents `#b0c6ff`, Manrope + Inter typography.
 
+**Responsive:** desktop layout collapses to a 64px icon rail (toggle lives at the bottom of the sidebar — `← Collapse` / `→ Expand`, persisted in `localStorage`). Phones (≤860px) get a slide-in drawer with backdrop, KPI grid drops to 2 columns, non-essential alert columns hide, and SVG charts auto-size their viewBox to the data so nothing leaks past the card edge.
+
 ## Features
 
 | Page | Description |
@@ -132,12 +134,28 @@ timeline (id, hour, count, is_spike, spike_label)
 
 ## Deployment (sentinel.ekuznetsov.dev)
 
-Hosted on Silver Server (Hetzner) behind Caddy, served by a `sentinel` system user via `systemd`.
+Hosted on Silver Server (Hetzner) behind Caddy, served by a `sentinel` system user via `systemd`. `Set-Cookie` flips on `Secure` when `NODE_ENV=production`.
 
 **Auto-deploy on push to `main`** via GitHub Actions (`.github/workflows/deploy.yml`):
-SSH to Silver as a restricted `sentinel-deploy` user (write access only to `/opt/sentinel-cyber`, NOPASSWD sudo limited to `systemctl restart sentinel-cyber` and `chown`), rsync, `npm ci --omit=dev`, restart, smoke-test the public URL.
+SSH to Silver as a restricted `sentinel-deploy` user (write access only to `/opt/sentinel-cyber` via setgid + group membership; NOPASSWD sudo limited to `systemctl restart sentinel-cyber`), `rsync` (no `--delete` — keeps `.env`, `server.log`, `db/sessions/`), `npm ci --omit=dev`, restart, smoke-test the public URL with up to 5 retries.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full path.
+
+## Tests
+
+`testMe/ui_test_scenarios.py` — 19 Titan/Playwright scenarios covering pages, actions, and the demo sandbox. Highlights:
+
+- **S16** walks 6 routes × 3 viewports (393 / 768 / 1440), checks `scrollWidth ≤ innerWidth + 4`, then walks every `.sc-card` and asserts its right edge stays inside the viewport (catches layouts that *would* horizontally scroll if `body { overflow-x: hidden }` weren't masking it).
+- **S17** mobile drawer: burger opens, backdrop click closes, nav-link click closes.
+- **S18** desktop collapse: chevron toggles 240px ↔ 64px, state persists across reload.
+- **S19** demo reset: `POST /api/demo/reset` rotates the cookie and the full KPI tuple changes.
+
+```bash
+# from the titan checkout
+.venv/bin/python3 cli.py test \
+  --system config/systems/sentinel-cyber.yaml \
+  --scenario sentinel-cyber
+```
 
 ## License
 

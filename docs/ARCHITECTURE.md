@@ -161,40 +161,62 @@ Push to `main`. That's it.
 
 1. Checkout.
 2. Drop the SSH private key from the `SENTINEL_DEPLOY_KEY` repo secret into `~/.ssh/id_ed25519`, fingerprint Silver into `known_hosts`.
-3. `rsync -az --delete` to `sentinel-deploy@89.167.108.210:/opt/sentinel-cyber/`, excluding `node_modules`, `.git`, `.github`, the local `db/sentinel.db*` files, and the `db/sessions/` runtime tree.
-4. `ssh sentinel-deploy@…` to run `npm ci --omit=dev`, `sudo chown -R sentinel:sentinel`, `sudo systemctl restart sentinel-cyber`.
-5. Smoke-test: `curl https://sentinel.ekuznetsov.dev/`, retry up to 5×.
+3. `rsync -az` to `sentinel-deploy@89.167.108.210:/opt/sentinel-cyber/`, excluding `node_modules`, `.git`, `.github`, `.env`, local `db/sentinel.db*` files, and the `db/sessions/` runtime tree. **No `--delete`** — first iteration of the workflow used it and ate `/opt/sentinel-cyber/.env`, the systemd `EnvironmentFile`, breaking startup. The exclude list also keeps server-only state alive.
+4. `ssh sentinel-deploy@…` runs `npm ci --omit=dev` then `sudo /usr/bin/systemctl restart sentinel-cyber`. No `chown` step — see below.
+5. Smoke-test: `curl https://sentinel.ekuznetsov.dev/`, retry up to 5× with 3s gaps.
+
+**Filesystem ownership model** (the bit that took two failed deploys to get right):
+
+- `/opt/sentinel-cyber/` is owned by `sentinel-deploy:sentinel` with `g+rwX` and the directory `setgid` bit set.
+- `sentinel-deploy` is the rsync owner, so it can `set times` (rsync's `-a` archive mode) without permission errors.
+- `sentinel` (the systemd user) is a member of group `sentinel` and reads/writes through group permissions; new files created by the service inherit `group=sentinel` via setgid.
+- The previous workflow re-chowned to `sentinel:sentinel` after every deploy. That stripped `sentinel-deploy`'s ability to update mtimes on the next push, exit 23. Removed.
 
 The `sentinel-deploy` user is intentionally restricted:
 
 - **No shell login** beyond what rsync/ssh-exec needs.
-- **Write access** scoped to `/opt/sentinel-cyber/` (group write via `chmod g+w` + group ownership).
+- **Write access** scoped to `/opt/sentinel-cyber/`.
 - **Sudoers** allow only:
   - `/usr/bin/systemctl restart sentinel-cyber`
   - `/usr/bin/systemctl reload sentinel-cyber`
-  - `/usr/bin/chown -R sentinel:sentinel /opt/sentinel-cyber`
 
-A leaked deploy key cannot escalate beyond redeploying the same service.
+A leaked deploy key cannot escalate beyond redeploying this service.
 
 **Manual deploy** (only for emergencies, when CI is broken):
 
 ```bash
-rsync -az --delete \
-  --exclude=node_modules --exclude=.git --exclude=.github \
+rsync -az \
+  --exclude=node_modules --exclude=.git --exclude=.github --exclude=.env \
   --exclude='db/sentinel.db*' --exclude='db/sessions' \
   ./ sentinel-deploy@89.167.108.210:/opt/sentinel-cyber/
 ssh sentinel-deploy@89.167.108.210 '
   cd /opt/sentinel-cyber &&
   npm ci --omit=dev &&
-  sudo /usr/bin/chown -R sentinel:sentinel /opt/sentinel-cyber &&
   sudo /usr/bin/systemctl restart sentinel-cyber
 '
 ```
 
+## Responsive layout
+
+The same shell adapts to phones, tablets, and desktop without changing route HTML:
+
+- **Breakpoint:** `860px`. Below → mobile mode, above → desktop.
+- **Desktop** (default): persistent 256px sidebar, topbar with search. A chevron button at the bottom of the sidebar collapses it to a 64px icon rail (`← Collapse` / `→ Expand`); state persists in `localStorage('sentinel.sidebar.collapsed')`. The `.nav-label` spans hide and the logo swaps to a `shield_lock` glyph.
+- **Mobile** (`≤860px`): sidebar becomes an off-canvas drawer (`transform: translateX(-100%)` + `contain: paint`), opened by a burger in the topbar and dismissed by tapping the `#sidebar-backdrop` overlay or any nav link. Search input hides; KPI grid drops to 2 columns; page-header action clusters wrap.
+- **Anti-overflow defences** (each catches a different class of bug):
+  1. `html, body { overflow-x: hidden }` on phones — last-line clip so a subtle leak never produces a horizontal scrollbar.
+  2. `.sc-card, .sc-kpi, .sc-table-wrap { min-width: 0; max-width: 100% }` — without this, a wide table inside a CSS-grid card stretches the card past the viewport (the body clip then *masks* it, hiding content behind the right edge instead of producing scroll).
+  3. `[style*="grid-template-columns"] { grid-template-columns: 1fr !important }` on phones — flattens any inline 2-/3-column grid (dashboard's `1fr 280px`, settings' `200px 1fr`, reports' `260px 1fr 1fr`) without per-page rewrites.
+  4. SVG charts compute their `viewBox` width from the data length and use `display: block` instead of `overflow: visible` so axis bars never paint past the SVG bounds.
+  5. Non-essential table columns marked `.col-hide-mobile` (e.g. dashboard Recent Alerts → Account, Type) are hidden, leaving Alert ID + Severity + Status legible inside the card.
+- **Breakpoint-cross handling:** a `matchMedia('change')` listener clears the irrelevant class when the viewport crosses 860px (drops `sidebar-collapsed` entering mobile, drops `sidebar-open` returning to desktop, restores persisted collapse state).
+
+The Titan suite asserts both layers: `S16` walks 6 routes × 3 viewports and fails if `scrollWidth > innerWidth + 4` *or* if any `.sc-card` extends past `window.innerWidth + 4`. The second check is what catches the body-clip-masks-overflow class of bug.
+
 ## Security boundaries
 
 - Sandbox isolation is by **filesystem**, not by SQL `WHERE`. A bug that omits `req.db` would 500 or crash the request — it cannot leak rows from another session.
-- Cookie is `HttpOnly` and `SameSite=Lax`. JS can't read it.
+- Cookie is `HttpOnly`, `SameSite=Lax`, and `Secure` when `NODE_ENV=production` (Caddy auto-HTTPS terminates TLS at the edge but the browser still needs the flag).
 - All input goes through `better-sqlite3` parameterized statements (`db.prepare(...).run(?)` / `.get(?)` / `.all(?)`); no string interpolation into SQL.
 - No file uploads, no SSRF surface, no auth so no credential leak path.
 - Worst case for a malicious visitor: fill their own `db/sessions/<sid>.db` with junk and trigger sweeper churn. Bounded by `SENTINEL_MAX_HANDLES` and disk.
